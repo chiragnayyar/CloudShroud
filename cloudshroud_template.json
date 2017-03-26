@@ -236,6 +236,22 @@
 		},
 		"controlboxEC2": {
 			"Type": "AWS::EC2::Instance",
+			"Metadata": {
+				"AWS::CloudFormation::Init": {
+					"configSets": {
+						"Install": ["Install"]
+					},
+
+					"Install": {
+						"packages": {
+							"yum": {
+								"expect": []
+							}
+						}
+					}
+				}
+			},
+
 			"Properties": {
 				"DisableApiTermination": "false",
 				"InstanceInitiatedShutdownBehavior": "stop",
@@ -543,6 +559,19 @@
 				"CidrIp": "0.0.0.0/0"
 			}
 		},
+		"ingress6": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Ref": "cloudfortsg"
+				},
+				"IpProtocol": "-1",
+				"SourceSecurityGroupId": {
+					"Ref": "cloudfortsg"
+				}
+			}
+		},
+
 		"egress1": {
 			"Type": "AWS::EC2::SecurityGroupEgress",
 			"Properties": {
@@ -554,5 +583,13 @@
 			}
 		}
 
+	},
+	"Outputs": {
+		"ControlBoxEIP": {
+			"Description": "The public IP to your controlbox:",
+			"Value": {
+				"Fn::GetAtt": ["controlboxEC2", "PublicIp"]
+			}
+		}
 	}
 }
