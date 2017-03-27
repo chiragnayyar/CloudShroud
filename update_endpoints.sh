@@ -1,16 +1,24 @@
 #!/bin/bash
 
 # this script will setup the VPN controller box for the first time, and create necessary files.
-target="192.168.11.126"
+cloudshrouda_private=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
-function update_f {
+cloudshroudb_private=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+
+cloudshrouda_public=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+
+cloudshroudb_public=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+
+
+
+function update_f () {
 
 expect -c '
 puts ""
-puts "Checking VPN endpoint versions..."
+puts "Checking if VPN endpoint '$2' needs to be updated..."
 
 log_user 0
-spawn ssh -q -i healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$target' 
+spawn ssh -q -i healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 set timeout 2
 
 proc update_fun {} {
@@ -57,29 +65,36 @@ set output $expect_out(1,string)
 
 if {![info exists output]} {
 	puts ""
-	puts "Vyos is out of date."
+	puts "Endpoint is out of date."
 	set running [update_fun]
 
 } elseif {$output == "1.1.7"} {
 	puts ""
-	puts "Vyos is up to date with version $output"
+	puts "Endpoint is up to date with VYos version $output"
 	
 } else {
 	puts ""
-	puts "Vyos is out of date."
+	puts "Endpoint is out of date."
 	set running [update_fun]
 }
 '
 }
 
+function replace_key_f {
+	cat healthcheck.key.pub | ssh -i healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$1 'sudo cat - >> .ssh/authorized_keys'
+	}
+
 function ssh_keys_f {
 	if [ -f "healthcheck.key" ]
 	then 
-		update_f
+		update_f $cloudshrouda_private $cloudshrouda_public
+		update_f $cloudshroudb_private $cloudshroudb_public
 	else
 		ssh-keygen -t rsa -b 1024 -N "" -f healthcheck.key >> /dev/null
-		cat healthcheck.key.pub | ssh -i healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$target 'sudo cat - >> .ssh/authorized_keys'
-		update_f
+		replace_key_f $cloudshrouda_private
+		replace_key_f $cloudshroudb_private
+		update_f $cloudshrouda_private $cloudshrouda_public
+		update_f $cloudshroudb_private $cloudshroudb_public
 	fi
 }
 if [ -f "healthcheck.key" ]

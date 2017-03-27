@@ -253,6 +253,20 @@
 			},
 
 			"Properties": {
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": ["", [
+								"#!/bin/bash -xe\n",
+								"# Install the files and packages from the metadata\n",
+								"/opt/aws/bin/cfn-init -v ",
+								"         --stack ", {"Ref": "AWS::StackName"},
+								"         --resource controlboxEC2 ",
+								"         --configsets Install ",
+								"         --region ", {"Ref": "AWS::Region"}, "\n"
+							]]
+					}
+				},
+
 				"DisableApiTermination": "false",
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
