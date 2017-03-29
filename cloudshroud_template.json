@@ -3,12 +3,11 @@
 	"Metadata": {
 		"AWS::CloudFormation::Interface": {
 			"ParameterGroups": [{
-					"Label": {
-						"default": "CloudFort VPC Configuration"
-					},
-					"Parameters": ["VPCID", "CloudFortAZs", "CloudFortSubnets", "ControlBoxSubnet", "InstanceType", "KeyName", "SSHSourceIP"]
-				}
-			],
+				"Label": {
+					"default": "CloudFort VPC Configuration"
+				},
+				"Parameters": ["VPCID", "CloudFortAZs", "CloudFortSubnets", "ControlBoxSubnet", "InstanceType", "KeyName", "SSHSourceIP"]
+			}],
 			"ParameterLabels": {
 				"VPCID": {
 					"default": "The VPC to deploy CloudFort in"
@@ -149,24 +148,21 @@
 			"Properties": {
 				"CidrBlock": {
 					"Fn::Select": ["0", {
-							"Ref": "CloudFortSubnets"
-						}
-					]
+						"Ref": "CloudFortSubnets"
+					}]
 				},
 				"AvailabilityZone": {
 					"Fn::Select": ["0", {
-							"Ref": "CloudFortAZs"
-						}
-					]
+						"Ref": "CloudFortAZs"
+					}]
 				},
 				"VpcId": {
 					"Ref": "VPCID"
 				},
 				"Tags": [{
-						"Key": "Name",
-						"Value": "CloudFortA"
-					}
-				]
+					"Key": "Name",
+					"Value": "CloudFortA"
+				}]
 			}
 		},
 		"CFsubnetBresource": {
@@ -174,24 +170,21 @@
 			"Properties": {
 				"CidrBlock": {
 					"Fn::Select": ["1", {
-							"Ref": "CloudFortSubnets"
-						}
-					]
+						"Ref": "CloudFortSubnets"
+					}]
 				},
 				"AvailabilityZone": {
 					"Fn::Select": ["1", {
-							"Ref": "CloudFortAZs"
-						}
-					]
+						"Ref": "CloudFortAZs"
+					}]
 				},
 				"VpcId": {
 					"Ref": "VPCID"
 				},
 				"Tags": [{
-						"Key": "Name",
-						"Value": "CloudFortB"
-					}
-				]
+					"Key": "Name",
+					"Value": "CloudFortB"
+				}]
 			}
 		},
 		"CFroutetable": {
@@ -201,10 +194,9 @@
 					"Ref": "VPCID"
 				},
 				"Tags": [{
-						"Key": "Name",
-						"Value": "CloudFort"
-					}
-				]
+					"Key": "Name",
+					"Value": "CloudFort"
+				}]
 			}
 		},
 		"eip1": {
@@ -247,6 +239,14 @@
 							"yum": {
 								"expect": []
 							}
+						},
+						"files": {
+							"/home/ec2-user/update_endpoints.sh": {
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/update_endpoints.sh",
+								"mode": "000755",
+								"user": "ec2-user",
+								"group": "ec2-user"
+							}
 						}
 					}
 				}
@@ -256,14 +256,19 @@
 				"UserData": {
 					"Fn::Base64": {
 						"Fn::Join": ["", [
-								"#!/bin/bash -xe\n",
-								"# Install the files and packages from the metadata\n",
-								"/opt/aws/bin/cfn-init -v ",
-								"         --stack ", {"Ref": "AWS::StackName"},
-								"         --resource controlboxEC2 ",
-								"         --configsets Install ",
-								"         --region ", {"Ref": "AWS::Region"}, "\n"
-							]]
+							"#!/bin/bash -xe\n",
+							"# Install the files and packages from the metadata\n",
+							"/opt/aws/bin/cfn-init -v ",
+							"         --stack ", {
+								"Ref": "AWS::StackName"
+							},
+							"         --resource controlboxEC2 ",
+							"         --configsets Install ",
+							"         --region ", {
+								"Ref": "AWS::Region"
+							}, 
+							"\n",
+						]]
 					}
 				},
 
@@ -271,8 +276,8 @@
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-							"Ref": "AWS::Region"
-						}, "controlbox"]
+						"Ref": "AWS::Region"
+					}, "controlbox"]
 				},
 				"InstanceType": "t2.micro",
 				"IamInstanceProfile": {
@@ -283,23 +288,20 @@
 				},
 				"Monitoring": "false",
 				"Tags": [{
-						"Key": "Name",
-						"Value": "CloudFortControlBox"
-					}
-				],
+					"Key": "Name",
+					"Value": "CloudFortControlBox"
+				}],
 				"NetworkInterfaces": [{
-						"DeleteOnTermination": "true",
-						"Description": "Interface on CF controlbox",
-						"DeviceIndex": 0,
-						"SubnetId": {
-							"Ref": "CFsubnetAresource"
-						},
-						"GroupSet": [{
-								"Ref": "cloudfortsg"
-							}
-						]
-					}
-				]
+					"DeleteOnTermination": "true",
+					"Description": "Interface on CF controlbox",
+					"DeviceIndex": 0,
+					"SubnetId": {
+						"Ref": "CFsubnetAresource"
+					},
+					"GroupSet": [{
+						"Ref": "cloudfortsg"
+					}]
+				}]
 
 			}
 		},
@@ -310,8 +312,8 @@
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-							"Ref": "AWS::Region"
-						}, "vyos"]
+						"Ref": "AWS::Region"
+					}, "vyos"]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
@@ -322,23 +324,20 @@
 				"Monitoring": "false",
 				"SourceDestCheck": "false",
 				"Tags": [{
-						"Key": "Name",
-						"Value": "CloudFortA"
-					}
-				],
+					"Key": "Name",
+					"Value": "CloudFortA"
+				}],
 				"NetworkInterfaces": [{
-						"DeleteOnTermination": "true",
-						"Description": "Interface on CF VPN A",
-						"DeviceIndex": 0,
-						"SubnetId": {
-							"Ref": "CFsubnetAresource"
-						},
-						"GroupSet": [{
-								"Ref": "cloudfortsg"
-							}
-						]
-					}
-				]
+					"DeleteOnTermination": "true",
+					"Description": "Interface on CF VPN A",
+					"DeviceIndex": 0,
+					"SubnetId": {
+						"Ref": "CFsubnetAresource"
+					},
+					"GroupSet": [{
+						"Ref": "cloudfortsg"
+					}]
+				}]
 
 			}
 		},
@@ -349,8 +348,8 @@
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-							"Ref": "AWS::Region"
-						}, "vyos"]
+						"Ref": "AWS::Region"
+					}, "vyos"]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
@@ -361,51 +360,46 @@
 				"Monitoring": "false",
 				"SourceDestCheck": "false",
 				"Tags": [{
-						"Key": "Name",
-						"Value": "CloudFortB"
-					}
-				],
+					"Key": "Name",
+					"Value": "CloudFortB"
+				}],
 				"NetworkInterfaces": [{
-						"DeleteOnTermination": "true",
-						"Description": "Interface on CF VPN B",
-						"DeviceIndex": 0,
-						"SubnetId": {
-							"Ref": "CFsubnetBresource"
-						},
-						"GroupSet": [{
-								"Ref": "cloudfortsg"
-							}
-						]
-					}
-				]
+					"DeleteOnTermination": "true",
+					"Description": "Interface on CF VPN B",
+					"DeviceIndex": 0,
+					"SubnetId": {
+						"Ref": "CFsubnetBresource"
+					},
+					"GroupSet": [{
+						"Ref": "cloudfortsg"
+					}]
+				}]
 			}
 		},
 		"CloudFortPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"Roles": [{
-						"Ref": "CloudFortRole"
-					}
-				],
+					"Ref": "CloudFortRole"
+				}],
 				"PolicyName": "CloudFortAPIaccess",
 				"PolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
-							"Effect": "Allow",
-							"Action": [
-								"ec2:AuthorizeSecurityGroupIngress",
-								"ec2:DescribeInstances",
-								"ec2:DescribeInternetGateways",
-								"ec2:DescribeSecurityGroups",
-								"ec2:DescribeRouteTables",
-								"ec2:CreateRoute",
-								"ec2:ReplaceRoute",
-								"ec2:RunInstances",
-								"ec2:StopInstances"
-							],
-							"Resource": "*"
-						}
-					]
+						"Effect": "Allow",
+						"Action": [
+							"ec2:AuthorizeSecurityGroupIngress",
+							"ec2:DescribeInstances",
+							"ec2:DescribeInternetGateways",
+							"ec2:DescribeSecurityGroups",
+							"ec2:DescribeRouteTables",
+							"ec2:CreateRoute",
+							"ec2:ReplaceRoute",
+							"ec2:RunInstances",
+							"ec2:StopInstances"
+						],
+						"Resource": "*"
+					}]
 
 				}
 			}
@@ -416,13 +410,12 @@
 				"AssumeRolePolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": "ec2.amazonaws.com"
-							},
-							"Action": "sts:AssumeRole"
-						}
-					]
+						"Effect": "Allow",
+						"Principal": {
+							"Service": "ec2.amazonaws.com"
+						},
+						"Action": "sts:AssumeRole"
+					}]
 				},
 				"Path": "/"
 			}
@@ -433,9 +426,8 @@
 			"Properties": {
 				"Path": "/",
 				"Roles": [{
-						"Ref": "CloudFortRole"
-					}
-				]
+					"Ref": "CloudFortRole"
+				}]
 			}
 		},
 
@@ -600,7 +592,7 @@
 	},
 	"Outputs": {
 		"ControlBoxEIP": {
-			"Description": "The public IP to your controlbox:",
+			"Description": "The public IP to your CloudShroud controlbox",
 			"Value": {
 				"Fn::GetAtt": ["controlboxEC2", "PublicIp"]
 			}

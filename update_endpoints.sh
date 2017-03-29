@@ -18,11 +18,11 @@ puts ""
 puts "Checking if VPN endpoint '$2' needs to be updated..."
 
 log_user 0
-spawn ssh -q -i healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 set timeout 2
+spawn ssh -q -i .ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 
 proc update_fun {} {
-	puts "please wait,this make take a few minutes."
+	puts "please wait, this may take a few minutes."
 	puts "updating to latest version..."
 	puts ""
 send "\r"
@@ -55,7 +55,6 @@ expect {
 	"no route" exit
 	"~$ "
 	}
-expect "~$ "
 send "show system image\r"
 
 expect -re {.*VyOS-(\d+\.\d+\.\d+?)} {
@@ -81,8 +80,46 @@ if {![info exists output]} {
 }
 
 function replace_key_f {
-	cat healthcheck.key.pub | ssh -i healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$1 'sudo cat - >> .ssh/authorized_keys'
+	cat .ssh/healthcheck.key.pub | ssh -i .ssh/healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$1 'sudo cat - >> healthcheck.key.pub'
 	}
+	
+function make_key_perm_f {
+ 
+expect -c '
+log_user 0 
+set timeout 2
+spawn ssh -q -i .ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1'
+expect {
+	timeout {puts "connection timed out"; exit}
+	"connection refused" exit
+	"unknown host" exit
+	"no route" exit
+	"~$ "
+	}
+send "mv healthcheck.key.pub .ssh/healthcheck.key.pub\r"
+
+expect "~$ "
+send "configure\r"
+
+expect "# "
+send "loadkey vyos .ssh/healthcheck.key.pub\r"
+
+expect "# "
+send "commit\r"
+
+expect "# "
+send "save\r"
+
+expect "# "
+send "exit\r"
+
+expect "~$ "
+send "exit\r"
+'
+}
+
+
+
 
 function ssh_keys_f {
 	if [ -f "healthcheck.key" ]
@@ -90,9 +127,11 @@ function ssh_keys_f {
 		update_f $cloudshrouda_private $cloudshrouda_public
 		update_f $cloudshroudb_private $cloudshroudb_public
 	else
-		ssh-keygen -t rsa -b 1024 -N "" -f healthcheck.key >> /dev/null
+		ssh-keygen -t rsa -b 1024 -N "" -f .ssh/healthcheck.key >> /dev/null
 		replace_key_f $cloudshrouda_private
 		replace_key_f $cloudshroudb_private
+		make_key_perm_f $cloudshrouda_private
+		make_key_perm_f $cloudshroudb_private
 		update_f $cloudshrouda_private $cloudshrouda_public
 		update_f $cloudshroudb_private $cloudshroudb_public
 	fi
