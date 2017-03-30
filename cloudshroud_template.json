@@ -3,19 +3,20 @@
 	"Metadata": {
 		"AWS::CloudFormation::Interface": {
 			"ParameterGroups": [{
-				"Label": {
-					"default": "CloudFort VPC Configuration"
-				},
-				"Parameters": ["VPCID", "CloudFortAZs", "CloudFortSubnets", "ControlBoxSubnet", "InstanceType", "KeyName", "SSHSourceIP"]
-			}],
+					"Label": {
+						"default": "CloudShroud VPC Configuration"
+					},
+					"Parameters": ["VPCID", "CloudShroudAZs", "CloudShroudSubnets", "ControlBoxSubnet", "InstanceType", "KeyName", "SSHSourceIP"]
+				}
+			],
 			"ParameterLabels": {
 				"VPCID": {
-					"default": "The VPC to deploy CloudFort in"
+					"default": "The VPC to deploy CloudShroud in"
 				},
-				"CloudFortAZs": {
-					"default": "Availability zones to create CloudFort subnets in"
+				"CloudShroudAZs": {
+					"default": "Availability zones to create CloudShroud subnets in"
 				},
-				"CloudFortSubnets": {
+				"CloudShroudSubnets": {
 					"default": "Subnets that you want to use for VPN endpoints"
 				},
 				"ControlBoxSubnet": {
@@ -61,18 +62,10 @@
 			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
 		},
 		"VPCID": {
-			"Description": "This is the VPC id that you want to launch CloudFort in. Note that you must create this VPC with an attached Internet Gateway (IGW) before launching this template.",
+			"Description": "This is the VPC id that you want to launch CloudShroud in. Note that you must create this VPC with an attached Internet Gateway (IGW) before launching this template.",
 			"Type": "AWS::EC2::VPC::Id",
 			"Default": "vpc-abcd1234",
 			"ConstraintDescription": "must choose a valid existing VPC id."
-		},
-		"InternetGateway": {
-			"Description": "The Internet Gateway Id (IGW) of your VPC. This will be used to create a needed route out to the internet. (IGW will look like 'igw-xxxxxxxx')",
-			"Type": "String",
-			"MinLength": "12",
-			"MaxLength": "12",
-			"Default": "igw-abcd1234",
-			"AllowedPattern": "igw-[0-9a-z]+"
 		},
 		"ControlBoxSubnet": {
 			"Description": "The controlbox is the EC2 instance that monitors VPN endpoint health and is also the bastion host you will ssh into to setup VPNs, etc",
@@ -80,13 +73,13 @@
 			"Default": "subnet-abcd1234",
 			"ConstraintDescription": "must choose a valid subnet id."
 		},
-		"CloudFortSubnets": {
-			"Description": "Specify two new subnet blocks of any size that can be created within your VPC to launch the CloudFort VPN endpoints in. Each subnet will only have one EC2 in it, so you may choose to use something small (ie. /28). These subnets must not overlap existing subnets within your chosen VPC.",
+		"CloudShroudSubnets": {
+			"Description": "Specify two new subnet blocks of any size that can be created within your VPC to launch the CloudShroud VPN endpoints in. Each subnet will only have one EC2 in it, so you may choose to use something small (ie. /28). These subnets must not overlap existing subnets within your chosen VPC.",
 			"Type": "CommaDelimitedList",
 			"Default": "10.0.0.0/28, 10.0.0.16/28",
 			"ConstraintDescription": "must be two valid *unused* subnets within your VPC CIDR. Specify comma delimited list (ie. 10.0.1.0/24, 10.0.2.0/24)"
 		},
-		"CloudFortAZs": {
+		"CloudShroudAZs": {
 			"Description": "Pick two availability zones that you want to launch the VPN endpoints to be launched in. Using two AZs will ensure better high-availability of your VPN.",
 			"Default": "us-east-1a, us-east-1b",
 			"Type": "List<AWS::EC2::AvailabilityZone::Name>",
@@ -148,21 +141,24 @@
 			"Properties": {
 				"CidrBlock": {
 					"Fn::Select": ["0", {
-						"Ref": "CloudFortSubnets"
-					}]
+							"Ref": "CloudShroudSubnets"
+						}
+					]
 				},
 				"AvailabilityZone": {
 					"Fn::Select": ["0", {
-						"Ref": "CloudFortAZs"
-					}]
+							"Ref": "CloudShroudAZs"
+						}
+					]
 				},
 				"VpcId": {
 					"Ref": "VPCID"
 				},
 				"Tags": [{
-					"Key": "Name",
-					"Value": "CloudFortA"
-				}]
+						"Key": "Name",
+						"Value": "CloudShroudA"
+					}
+				]
 			}
 		},
 		"CFsubnetBresource": {
@@ -170,33 +166,37 @@
 			"Properties": {
 				"CidrBlock": {
 					"Fn::Select": ["1", {
-						"Ref": "CloudFortSubnets"
-					}]
+							"Ref": "CloudShroudSubnets"
+						}
+					]
 				},
 				"AvailabilityZone": {
 					"Fn::Select": ["1", {
-						"Ref": "CloudFortAZs"
-					}]
+							"Ref": "CloudShroudAZs"
+						}
+					]
 				},
 				"VpcId": {
 					"Ref": "VPCID"
 				},
 				"Tags": [{
-					"Key": "Name",
-					"Value": "CloudFortB"
-				}]
+						"Key": "Name",
+						"Value": "CloudShroudB"
+					}
+				]
 			}
 		},
-		"CFroutetable": {
+		"CSroutetable": {
 			"Type": "AWS::EC2::RouteTable",
 			"Properties": {
 				"VpcId": {
 					"Ref": "VPCID"
 				},
 				"Tags": [{
-					"Key": "Name",
-					"Value": "CloudFort"
-				}]
+						"Key": "Name",
+						"Value": "CloudShroud"
+					}
+				]
 			}
 		},
 		"eip1": {
@@ -213,7 +213,7 @@
 			"Properties": {
 				"Domain": "vpc",
 				"InstanceId": {
-					"Ref": "CloudFortEC2A"
+					"Ref": "CloudShroudEC2A"
 				}
 			}
 		},
@@ -222,11 +222,12 @@
 			"Properties": {
 				"Domain": "vpc",
 				"InstanceId": {
-					"Ref": "CloudFortEC2B"
+					"Ref": "CloudShroudEC2B"
 				}
 			}
 		},
 		"controlboxEC2": {
+			"DependsOn": "CSroutetable",
 			"Type": "AWS::EC2::Instance",
 			"Metadata": {
 				"AWS::CloudFormation::Init": {
@@ -247,28 +248,49 @@
 								"user": "ec2-user",
 								"group": "ec2-user"
 							}
-						}
+						},
+						"commands": {
+							"setigw": {
+									"command": "echo \"$MYIGW\" >> /home/ec2-user/.bashrc",
+									"env": 
+							{"MYIGW": { "Fn::Join" : ["",["export MYIGW=`aws ec2 describe-internet-gateways --filters 'Name=attachment.vpc-id,Values=",{"Ref":"VPCID"},"' --region ",{"Ref":"AWS::Region"}," --query 'InternetGateways[].InternetGatewayId[]' | grep -E -o igw-[a-z0-9]+`"]] }
+							}},
+							"sourceit":{
+									"command": "source /home/ec2-user/.bashrc"
+							},
+							"setvpc": {
+									"command" : "echo export MYVPC=\"$MYVPC\" >> /home/ec2-user/.bashrc",
+									"env": {"MYVPC":{"Ref":"VPCID"}}
+							},
+							"setregion": {
+									"command" : "echo export MYREGION=\"$MYREGION\" >> /home/ec2-user/.bashrc",
+									"env": {"MYREGION":{"Ref":"AWS::Region"}}
+							},
+							"setroutetable": {
+									"command" : "echo export MYROUTETABLE=\"$MYROUTETABLE\" >> /home/ec2-user/.bashrc",
+									"env": {"MYROUTETABLE":{"Ref":"CSroutetable"}
+							}
+
 					}
-				}
-			},
+					}}
+			}},
 
 			"Properties": {
 				"UserData": {
 					"Fn::Base64": {
 						"Fn::Join": ["", [
-							"#!/bin/bash -xe\n",
-							"# Install the files and packages from the metadata\n",
-							"/opt/aws/bin/cfn-init -v ",
-							"         --stack ", {
-								"Ref": "AWS::StackName"
-							},
-							"         --resource controlboxEC2 ",
-							"         --configsets Install ",
-							"         --region ", {
-								"Ref": "AWS::Region"
-							}, 
-							"\n",
-						]]
+								"#!/bin/bash -xe\n",
+								"/opt/aws/bin/cfn-init -v ",
+								"         --stack ", {
+									"Ref": "AWS::StackName"
+								},
+								"         --resource controlboxEC2 ",
+								"         --configsets Install ",
+								"         --region ", {
+									"Ref": "AWS::Region"
+								},
+								"\n"
+							]]
 					}
 				},
 
@@ -276,8 +298,8 @@
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-						"Ref": "AWS::Region"
-					}, "controlbox"]
+							"Ref": "AWS::Region"
+						}, "controlbox"]
 				},
 				"InstanceType": "t2.micro",
 				"IamInstanceProfile": {
@@ -288,32 +310,35 @@
 				},
 				"Monitoring": "false",
 				"Tags": [{
-					"Key": "Name",
-					"Value": "CloudFortControlBox"
-				}],
+						"Key": "Name",
+						"Value": "CloudShroudControlBox"
+					}
+				],
 				"NetworkInterfaces": [{
-					"DeleteOnTermination": "true",
-					"Description": "Interface on CF controlbox",
-					"DeviceIndex": 0,
-					"SubnetId": {
-						"Ref": "CFsubnetAresource"
-					},
-					"GroupSet": [{
-						"Ref": "cloudfortsg"
-					}]
-				}]
+						"DeleteOnTermination": "true",
+						"Description": "Interface on CF controlbox",
+						"DeviceIndex": 0,
+						"SubnetId": {
+							"Ref": "ControlBoxSubnet"
+						},
+						"GroupSet": [{
+								"Ref": "CloudShroudsg"
+							}
+						]
+					}
+				]
 
 			}
 		},
-		"CloudFortEC2A": {
+		"CloudShroudEC2A": {
 			"Type": "AWS::EC2::Instance",
 			"Properties": {
 				"DisableApiTermination": "false",
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-						"Ref": "AWS::Region"
-					}, "vyos"]
+							"Ref": "AWS::Region"
+						}, "vyos"]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
@@ -324,32 +349,35 @@
 				"Monitoring": "false",
 				"SourceDestCheck": "false",
 				"Tags": [{
-					"Key": "Name",
-					"Value": "CloudFortA"
-				}],
+						"Key": "Name",
+						"Value": "CloudShroudA"
+					}
+				],
 				"NetworkInterfaces": [{
-					"DeleteOnTermination": "true",
-					"Description": "Interface on CF VPN A",
-					"DeviceIndex": 0,
-					"SubnetId": {
-						"Ref": "CFsubnetAresource"
-					},
-					"GroupSet": [{
-						"Ref": "cloudfortsg"
-					}]
-				}]
+						"DeleteOnTermination": "true",
+						"Description": "Interface on CF VPN A",
+						"DeviceIndex": 0,
+						"SubnetId": {
+							"Ref": "CFsubnetAresource"
+						},
+						"GroupSet": [{
+								"Ref": "CloudShroudsg"
+							}
+						]
+					}
+				]
 
 			}
 		},
-		"CloudFortEC2B": {
+		"CloudShroudEC2B": {
 			"Type": "AWS::EC2::Instance",
 			"Properties": {
 				"DisableApiTermination": "false",
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-						"Ref": "AWS::Region"
-					}, "vyos"]
+							"Ref": "AWS::Region"
+						}, "vyos"]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
@@ -360,62 +388,68 @@
 				"Monitoring": "false",
 				"SourceDestCheck": "false",
 				"Tags": [{
-					"Key": "Name",
-					"Value": "CloudFortB"
-				}],
+						"Key": "Name",
+						"Value": "CloudShroudB"
+					}
+				],
 				"NetworkInterfaces": [{
-					"DeleteOnTermination": "true",
-					"Description": "Interface on CF VPN B",
-					"DeviceIndex": 0,
-					"SubnetId": {
-						"Ref": "CFsubnetBresource"
-					},
-					"GroupSet": [{
-						"Ref": "cloudfortsg"
-					}]
-				}]
+						"DeleteOnTermination": "true",
+						"Description": "Interface on CF VPN B",
+						"DeviceIndex": 0,
+						"SubnetId": {
+							"Ref": "CFsubnetBresource"
+						},
+						"GroupSet": [{
+								"Ref": "CloudShroudsg"
+							}
+						]
+					}
+				]
 			}
 		},
-		"CloudFortPolicy": {
+		"CloudShroudPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"Roles": [{
-					"Ref": "CloudFortRole"
-				}],
-				"PolicyName": "CloudFortAPIaccess",
+						"Ref": "CloudShroudRole"
+					}
+				],
+				"PolicyName": "CloudShroudAPIaccess",
 				"PolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
-						"Effect": "Allow",
-						"Action": [
-							"ec2:AuthorizeSecurityGroupIngress",
-							"ec2:DescribeInstances",
-							"ec2:DescribeInternetGateways",
-							"ec2:DescribeSecurityGroups",
-							"ec2:DescribeRouteTables",
-							"ec2:CreateRoute",
-							"ec2:ReplaceRoute",
-							"ec2:RunInstances",
-							"ec2:StopInstances"
-						],
-						"Resource": "*"
-					}]
+							"Effect": "Allow",
+							"Action": [
+								"ec2:AuthorizeSecurityGroupIngress",
+								"ec2:DescribeInstances",
+								"ec2:DescribeInternetGateways",
+								"ec2:DescribeSecurityGroups",
+								"ec2:DescribeRouteTables",
+								"ec2:CreateRoute",
+								"ec2:ReplaceRoute",
+								"ec2:RunInstances",
+								"ec2:StopInstances"
+							],
+							"Resource": "*"
+						}
+					]
 
 				}
 			}
 		},
-		"CloudFortRole": {
+		"CloudShroudRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
 				"AssumeRolePolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "ec2.amazonaws.com"
-						},
-						"Action": "sts:AssumeRole"
-					}]
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "ec2.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
 				},
 				"Path": "/"
 			}
@@ -426,15 +460,16 @@
 			"Properties": {
 				"Path": "/",
 				"Roles": [{
-					"Ref": "CloudFortRole"
-				}]
+						"Ref": "CloudShroudRole"
+					}
+				]
 			}
 		},
 
-		"cloudfortsg": {
+		"CloudShroudsg": {
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
-				"GroupDescription": "Security group used by CloudFort controlbox and VPN instances",
+				"GroupDescription": "Security group used by CloudShroud controlbox and VPN instances",
 				"VpcId": {
 					"Ref": "VPCID"
 				}
@@ -444,7 +479,7 @@
 			"Type": "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties": {
 				"RouteTableId": {
-					"Ref": "CFroutetable"
+					"Ref": "CSroutetable"
 				},
 				"SubnetId": {
 					"Ref": "CFsubnetAresource"
@@ -455,22 +490,10 @@
 			"Type": "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties": {
 				"RouteTableId": {
-					"Ref": "CFroutetable"
+					"Ref": "CSroutetable"
 				},
 				"SubnetId": {
 					"Ref": "CFsubnetBresource"
-				}
-			}
-		},
-		"route1": {
-			"Type": "AWS::EC2::Route",
-			"Properties": {
-				"DestinationCidrBlock": "0.0.0.0/0",
-				"RouteTableId": {
-					"Ref": "CFroutetable"
-				},
-				"GatewayId": {
-					"Ref": "InternetGateway"
 				}
 			}
 		},
@@ -498,7 +521,7 @@
 					]
 				},
 				"InstanceId": {
-					"Ref": "CloudFortEC2A"
+					"Ref": "CloudShroudEC2A"
 				}
 			}
 		},
@@ -512,7 +535,7 @@
 					]
 				},
 				"InstanceId": {
-					"Ref": "CloudFortEC2B"
+					"Ref": "CloudShroudEC2B"
 				}
 			}
 		},
@@ -521,7 +544,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				},
 				"IpProtocol": "tcp",
 				"FromPort": "22",
@@ -535,7 +558,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				},
 				"IpProtocol": "50",
 				"CidrIp": "0.0.0.0/0"
@@ -545,7 +568,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				},
 				"IpProtocol": "udp",
 				"FromPort": "4500",
@@ -557,7 +580,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				},
 				"IpProtocol": "udp",
 				"FromPort": "500",
@@ -569,11 +592,11 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				},
 				"IpProtocol": "-1",
 				"SourceSecurityGroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				}
 			}
 		},
@@ -582,7 +605,7 @@
 			"Type": "AWS::EC2::SecurityGroupEgress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "cloudfortsg"
+					"Ref": "CloudShroudsg"
 				},
 				"IpProtocol": "-1",
 				"CidrIp": "0.0.0.0/0"

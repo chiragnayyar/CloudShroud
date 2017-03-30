@@ -1,16 +1,20 @@
 #!/bin/bash
 
-# this script will setup the VPN controller box for the first time, and create necessary files.
-cloudshrouda_private=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+# this script will setup the CloudShroud controlbox and VPN endpoints for the first time, and create necessary files.
 
-cloudshroudb_private=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+# Retrieve the private and public IPs of the VPN endpoints based on their tag, name=value
+cloudshrouda_private=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
-cloudshrouda_public=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+cloudshroudb_private=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
-cloudshroudb_public=$(aws ec2 describe-instances --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudFortEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
+cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
+# Make sure CloudShroud subnet route table has IGW default route
+aws ec2 create-route --region $MYREGION --route-table-id $MYROUTETABLE --destination-cidr-block 0.0.0.0/0 --gateway-id $MYIGW > /dev/null
 
+# Function to check the OS version of VYos and update if needed.
 function update_f () {
 
 expect -c '
@@ -79,14 +83,16 @@ if {![info exists output]} {
 '
 }
 
+# Function to create SSH keys between CloudShroud controlbox and VPN endpoints.
 function replace_key_f {
 	cat .ssh/healthcheck.key.pub | ssh -i .ssh/healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$1 'sudo cat - >> healthcheck.key.pub'
 	}
-	
+
+# Function to make the SSH public keys permanent on the Vyos VPN endpoints so that they persist through reboot.	
 function make_key_perm_f {
  
 expect -c '
-log_user 0 
+log_user 0
 set timeout 2
 spawn ssh -q -i .ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1'
 expect {
@@ -118,11 +124,9 @@ send "exit\r"
 '
 }
 
-
-
-
+# Function to check that SSH key exists or create if non-existent. Then it proceeds forward to check VYos update status
 function ssh_keys_f {
-	if [ -f "healthcheck.key" ]
+	if [ -f ".ssh/healthcheck.key" ]
 	then 
 		update_f $cloudshrouda_private $cloudshrouda_public
 		update_f $cloudshroudb_private $cloudshroudb_public
@@ -136,11 +140,13 @@ function ssh_keys_f {
 		update_f $cloudshroudb_private $cloudshroudb_public
 	fi
 }
-if [ -f "healthcheck.key" ]
+if [ -f ".ssh/healthcheck.key" ]
 then 
+    echo "SSH keys between controlbox and VPN endpoints created."
 	ssh_keys_f 
 else
 
+# Check if SSH agent-forwarding is enabled. This is required for initial CloudShroud setup.
 	if [[ $(ssh-add -l) =~ .*has\ +no\ +identities\. ]]
 		then
 				echo ""
