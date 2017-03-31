@@ -155,7 +155,7 @@ else
 		
 		else
 				echo ""
-				printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder\n prior to running CloudShroud initial setup.\n (TIP: Google 'setting up ssh agent forwarding')\n"
+				printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud initial setup.\n (TIP: Google 'setting up ssh agent forwarding')\n" | fold -sw 80
 				echo ""
 				exit 0
 
