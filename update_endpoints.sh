@@ -142,20 +142,22 @@ function ssh_keys_f {
 }
 if [ -f ".ssh/healthcheck.key" ]
 then 
-    echo "SSH keys between controlbox and VPN endpoints created."
+    echo "SSH keys between controlbox and VPN endpoints have been created."
 	ssh_keys_f 
 else
 
 # Check if SSH agent-forwarding is enabled. This is required for initial CloudShroud setup.
-	if [[ $(ssh-add -l) =~ .*has\ +no\ +identities\. ]]
+	if [[ $(ssh-add -l) =~ 2048 ]]
 		then
-				echo ""
-				printf "You have not enabled 'ssh agent fowarding' on your client machine.\nThis is needed in order to properly update CloudShroud.\nPlease enable this and try again.\n"
-				echo ""
-				exit 0
-		else
 				echo "SSH Agent Forwarder enabled."
 				echo "continuing with setup...."
 				ssh_keys_f 
+		
+		else
+				echo ""
+				printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder\n prior to running CloudShroud initial setup.\n (TIP: Google 'setting up ssh agent forwarding')\n"
+				echo ""
+				exit 0
+
 		fi
 fi
