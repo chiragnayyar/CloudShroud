@@ -249,7 +249,7 @@
 								"group": "ec2-user"
 							},
 							"/var/spool/cron/ec2-user": {
-								"content": "*/2 * * * * . /$HOME/.bashrc;/usr/bin/aws ec2 create-route --route-table-id $MYROUTETABLE --destination-cidr-block 0.0.0.0/0 --gateway-id $MYIGW --region $MYREGION",
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cron_task.txt",
 								"mode": "000600",
 								"owner": "ec2-user",
 								"group": "ec2-user"

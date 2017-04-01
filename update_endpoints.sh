@@ -11,9 +11,6 @@ cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 
 cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
-# Make sure CloudShroud subnet route table has IGW default route
-aws ec2 create-route --region $MYREGION --route-table-id $MYROUTETABLE --destination-cidr-block 0.0.0.0/0 --gateway-id $MYIGW > /dev/null
-
 # Function to check the OS version of VYos and update if needed.
 function update_f () {
 
