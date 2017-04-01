@@ -226,6 +226,21 @@
 				}
 			}
 		},
+"myWaitHandle" : {
+     "Type" : "AWS::CloudFormation::WaitConditionHandle",
+     "Properties" : {
+     }
+},
+"myWaitCondition" : {
+    "Type" : "AWS::CloudFormation::WaitCondition",
+    "DependsOn" : "controlboxEC2",
+    "Properties" : {
+        "Handle" : { "Ref" : "myWaitHandle" },
+         "Timeout" : "4500"
+    }
+},
+		
+		
 		"controlboxEC2": {
 			"DependsOn": "CSroutetable",
 			"Type": "AWS::EC2::Instance",
@@ -253,7 +268,12 @@
 								"mode": "000600",
 								"owner": "ec2-user",
 								"group": "ec2-user"
-							}
+							},
+							"/tmp/wait.sh": {
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/CFWaitCondition.sh",
+								"mode": "000755",
+								"owner": "ec2-user",
+								"group": "ec2-user"
 						},
 						"commands": {
 							"setigw": {
@@ -292,19 +312,22 @@
 									}
 								}
 
+							},
+							"checkwaitcondition": {
+								"command": ". /tmp/wait.sh"
 							}
 							
 						}
 					}
 				}
-			},
+			} },
 
 			"Properties": {
 				"UserData": {
 					"Fn::Base64": {
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
-								"/usr/bin/yum update -y\n",
+								"SignalURL=",{"Ref":"myWaitHandle"},"\n",
 								"/opt/aws/bin/cfn-init -v ",
 								"         --stack ", {
 									"Ref": "AWS::StackName"
@@ -432,6 +455,20 @@
 				]
 			}
 		},
+"myWaitHandle" : {
+     "Type" : "AWS::CloudFormation::WaitConditionHandle",
+     "Properties" : {
+     }
+},
+"myWaitCondition" : {
+    "Type" : "AWS::CloudFormation::WaitCondition",
+    "DependsOn" : "controlboxEC2",
+    "Properties" : {
+        "Handle" : { "Ref" : "myWaitHandle" },
+         "Timeout" : "4500"
+    }
+},
+		
 		"CloudShroudPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
@@ -625,6 +662,18 @@
 				}
 			}
 		},
+		"ingress7": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Ref": "CloudShroudsg"
+				},
+				"IpProtocol": "icmp",
+				"FromPort": "-1",
+				"ToPort": "-1",
+				"CidrIp": "0.0.0.0/0"
+			}
+		},		
 
 		"egress1": {
 			"Type": "AWS::EC2::SecurityGroupEgress",
