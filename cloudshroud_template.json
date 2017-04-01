@@ -247,11 +247,17 @@
 								"mode": "000755",
 								"user": "ec2-user",
 								"group": "ec2-user"
+							},
+							"/var/spool/cron/ec2-user": {
+								"content": "*/2 * * * * . /$HOME/.bashrc;/usr/bin/aws ec2 create-route --route-table-id $MYROUTETABLE --destination-cidr-block 0.0.0.0/0 --gateway-id $MYIGW --region $MYREGION",
+								"mode": "000600",
+								"owner": "ec2-user",
+								"group": "ec2-user"
 							}
 						},
 						"commands": {
 							"setigw": {
-								"command": "echo \"$MYIGW\" >> /home/ec2-user/.bashrc",
+								"command": "echo export MYIGW=\"$MYIGW\" >> /home/ec2-user/.bashrc",
 								"env": {
 									"MYIGW": {
 										"Fn::Join": ["", ["export MYIGW=`aws ec2 describe-internet-gateways --filters 'Name=attachment.vpc-id,Values=", {
@@ -261,9 +267,6 @@
 												}, " --query 'InternetGateways[].InternetGatewayId[]' | grep -E -o igw-[a-z0-9]+`"]]
 									}
 								}
-							},
-							"sourceit": {
-								"command": "source /home/ec2-user/.bashrc"
 							},
 							"setvpc": {
 								"command": "echo export MYVPC=\"$MYVPC\" >> /home/ec2-user/.bashrc",
@@ -290,6 +293,7 @@
 								}
 
 							}
+							
 						}
 					}
 				}
@@ -300,6 +304,7 @@
 					"Fn::Base64": {
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
+								"/usr/bin/yum update -y\n",
 								"/opt/aws/bin/cfn-init -v ",
 								"         --stack ", {
 									"Ref": "AWS::StackName"
@@ -634,19 +639,19 @@
 
 	},
 	"Outputs": {
-		"ControlBox_EIP": {
+		"ControlBoxEIP": {
 			"Description": "The public IP to your CloudShroud controlbox",
 			"Value": {
 				"Fn::GetAtt": ["controlboxEC2", "PublicIp"]
 			}
 		},
-		"CloudShroudEC2A_EIP": {
+		"CloudShroudEC2AEIP": {
 			"Description": "The public IP of CloudShroud VPN endpoint 'A'",
 			"Value": {
 				"Fn::GetAtt": ["CloudShroudEC2A", "PublicIp"]
 			}
 		},
-		"CloudShroudEC2B_EIP": {
+		"CloudShroudEC2BEIP": {
 			"Description": "The public IP of CloudShroud VPN endpoint 'B'",
 			"Value": {
 				"Fn::GetAtt": ["CloudShroudEC2B", "PublicIp"]
