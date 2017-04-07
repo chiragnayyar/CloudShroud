@@ -68,7 +68,7 @@
 			"ConstraintDescription": "must choose a valid existing VPC id."
 		},
 		"ControlBoxSubnet": {
-			"Description": "The controlbox is the EC2 instance that monitors VPN endpoint health and is also the bastion host you will ssh into to setup VPNs, etc",
+			"Description": "The controlbox is the EC2 instance that monitors VPN endpoint health and is also the bastion host you will ssh into to setup VPNs, etc. NOTE! You must specify an existing subnet that *has internet access*, or you will get a Stack Rollback during the controlbox EC2 creation",
 			"Type": "AWS::EC2::Subnet::Id",
 			"Default": "subnet-abcd1234",
 			"ConstraintDescription": "must choose a valid subnet id."
@@ -226,8 +226,15 @@
 				}
 			}
 		},
+		
+		
 		"controlboxEC2": {
 			"DependsOn": "CSroutetable",
+			"CreationPolicy" : {
+				"ResourceSignal" : {
+				  "Timeout" : "PT2M"
+				}
+			  },
 			"Type": "AWS::EC2::Instance",
 			"Metadata": {
 				"AWS::CloudFormation::Init": {
@@ -247,11 +254,17 @@
 								"mode": "000755",
 								"user": "ec2-user",
 								"group": "ec2-user"
+							},
+							"/var/spool/cron/ec2-user": {
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cron_task.txt",
+								"mode": "000600",
+								"owner": "ec2-user",
+								"group": "ec2-user"
 							}
 						},
 						"commands": {
 							"setigw": {
-								"command": "echo \"$MYIGW\" >> /home/ec2-user/.bashrc",
+								"command": "echo export MYIGW=\"$MYIGW\" >> /home/ec2-user/.bashrc",
 								"env": {
 									"MYIGW": {
 										"Fn::Join": ["", ["export MYIGW=`aws ec2 describe-internet-gateways --filters 'Name=attachment.vpc-id,Values=", {
@@ -261,9 +274,6 @@
 												}, " --query 'InternetGateways[].InternetGatewayId[]' | grep -E -o igw-[a-z0-9]+`"]]
 									}
 								}
-							},
-							"sourceit": {
-								"command": "source /home/ec2-user/.bashrc"
 							},
 							"setvpc": {
 								"command": "echo export MYVPC=\"$MYVPC\" >> /home/ec2-user/.bashrc",
@@ -290,6 +300,7 @@
 								}
 
 							}
+							
 						}
 					}
 				}
@@ -300,6 +311,7 @@
 					"Fn::Base64": {
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
+								"# Install the files and packages from the metadata\n",
 								"/opt/aws/bin/cfn-init -v ",
 								"         --stack ", {
 									"Ref": "AWS::StackName"
@@ -309,7 +321,13 @@
 								"         --region ", {
 									"Ref": "AWS::Region"
 								},
-								"\n"
+								"\n",
+								"# Signal success if internet access\n",
+								"ping -c 4 -W 1 8.8.8.8\n",
+								 "/opt/aws/bin/cfn-signal -e $? ",
+								 "         --stack ", { "Ref" : "AWS::StackName" },
+								 "         --resource controlboxEC2 ",
+								 "         --region ", { "Ref" : "AWS::Region" }, "\n"
 							]]
 					}
 				},
@@ -335,6 +353,7 @@
 					}
 				],
 				"NetworkInterfaces": [{
+						"AssociatePublicIpAddress": "True",
 						"DeleteOnTermination": "true",
 						"Description": "Interface on CF controlbox",
 						"DeviceIndex": 0,
@@ -427,6 +446,9 @@
 				]
 			}
 		},
+		
+		
+	
 		"CloudShroudPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
@@ -620,6 +642,18 @@
 				}
 			}
 		},
+		"ingress7": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Ref": "CloudShroudsg"
+				},
+				"IpProtocol": "icmp",
+				"FromPort": "-1",
+				"ToPort": "-1",
+				"CidrIp": "0.0.0.0/0"
+			}
+		},		
 
 		"egress1": {
 			"Type": "AWS::EC2::SecurityGroupEgress",
@@ -634,19 +668,19 @@
 
 	},
 	"Outputs": {
-		"ControlBox_EIP": {
+		"ControlBoxEIP": {
 			"Description": "The public IP to your CloudShroud controlbox",
 			"Value": {
 				"Fn::GetAtt": ["controlboxEC2", "PublicIp"]
 			}
 		},
-		"CloudShroudEC2A_EIP": {
+		"CloudShroudEC2AEIP": {
 			"Description": "The public IP of CloudShroud VPN endpoint 'A'",
 			"Value": {
 				"Fn::GetAtt": ["CloudShroudEC2A", "PublicIp"]
 			}
 		},
-		"CloudShroudEC2B_EIP": {
+		"CloudShroudEC2BEIP": {
 			"Description": "The public IP of CloudShroud VPN endpoint 'B'",
 			"Value": {
 				"Fn::GetAtt": ["CloudShroudEC2B", "PublicIp"]
