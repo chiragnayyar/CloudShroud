@@ -248,7 +248,7 @@
 							}
 						},
 						"files": {
-							"/home/ec2-user/update_endpoints.sh": {
+							"/etc/update_endpoints.sh": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/update_endpoints.sh",
 								"mode": "000755",
 								"user": "ec2-user",
@@ -303,7 +303,7 @@
 						}
 					}
 				}
-			} },
+			} ,
 
 			"Properties": {
 				"UserData": {

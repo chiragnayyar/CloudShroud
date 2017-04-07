@@ -20,7 +20,7 @@ puts "Checking if VPN endpoint '$2' needs to be updated..."
 
 log_user 0
 set timeout 2
-spawn ssh -q -i ~/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
+spawn ssh -q -i /home/ec2-user/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 
 proc update_fun {} {
 	puts "please wait, this may take a few minutes."
@@ -82,7 +82,7 @@ if {![info exists output]} {
 
 # Function to create SSH keys between CloudShroud controlbox and VPN endpoints.
 function replace_key_f {
-	cat ~/.ssh/healthcheck.key.pub | ssh -i ~/.ssh/healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$1 'sudo cat - >> healthcheck.key.pub'
+	cat /home/ec2-user/.ssh/healthcheck.key.pub | ssh -i /home/ec2-user/.ssh/healthcheck.key -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@$1 'sudo cat - >> healthcheck.key.pub'
 	}
 
 # Function to make the SSH public keys permanent on the Vyos VPN endpoints so that they persist through reboot.	
@@ -91,7 +91,7 @@ function make_key_perm_f {
 expect -c '
 log_user 0
 set timeout 2
-spawn ssh -q -i ~/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1'
+spawn ssh -q -i /home/ec2-user/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1'
 expect {
 	timeout {puts "connection timed out"; exit}
 	"connection refused" exit
@@ -99,13 +99,13 @@ expect {
 	"no route" exit
 	"~$ "
 	}
-send "mv healthcheck.key.pub ~/.ssh/healthcheck.key.pub\r"
+send "mv healthcheck.key.pub /home/ec2-user/.ssh/healthcheck.key.pub\r"
 
 expect "~$ "
 send "configure\r"
 
 expect "# "
-send "loadkey vyos ~/.ssh/healthcheck.key.pub\r"
+send "loadkey vyos /home/ec2-user/.ssh/healthcheck.key.pub\r"
 
 expect "# "
 send "commit\r"
@@ -123,12 +123,12 @@ send "exit\r"
 
 # Function to check that SSH key exists or create if non-existent. Then it proceeds forward to check VYos update status
 function ssh_keys_f {
-	if [ -f "~/.ssh/healthcheck.key" ]
+	if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
 	then 
 		update_f $cloudshrouda_private $cloudshrouda_public
 		update_f $cloudshroudb_private $cloudshroudb_public
 	else
-		ssh-keygen -t rsa -b 1024 -N "" -f ~/.ssh/healthcheck.key >> /dev/null
+		ssh-keygen -t rsa -b 1024 -N "" -f /home/ec2-user/.ssh/healthcheck.key >> /dev/null
 		replace_key_f $cloudshrouda_private
 		replace_key_f $cloudshroudb_private
 		make_key_perm_f $cloudshrouda_private
@@ -137,24 +137,29 @@ function ssh_keys_f {
 		update_f $cloudshroudb_private $cloudshroudb_public
 	fi
 }
-if [ -f "~/.ssh/healthcheck.key" ]
+if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
 then 
     echo "SSH keys between controlbox and VPN endpoints have been created."
 	ssh_keys_f 
 else
 
 # Check if SSH agent-forwarding is enabled. This is required for initial CloudShroud setup.
-	if [[ $(ssh-add -l) =~ 2048 ]]
+	if [[ $(ssh-add -l) =~ 2048 ]] 
 		then
 				echo "SSH Agent Forwarder enabled."
 				echo "continuing with setup...."
 				ssh_keys_f 
 		
 		else
-				echo ""
-				printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud initial setup.\n (TIP: Google 'setting up ssh agent forwarding')\n" | fold -sw 80
-				echo ""
-				exit 0
+			if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
+				then 
+					ssh_keys_f
+				else	
+					echo ""
+					printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud initial setup.\n (TIP: Google 'setting up ssh agent forwarding')\n" | fold -sw 80
+					echo ""
+					exit 0
+				fi
 
 		fi
 fi

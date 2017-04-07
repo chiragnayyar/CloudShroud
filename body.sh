@@ -4,7 +4,7 @@ echo "**************************************************************************
 echo "                      !! Welcome to CloudShroud !!                      "
 echo "*****************************************************************************" | fold -w 80
 echo ""
-greeting {
+greeting () {
 echo "Let's get started! What would you like to do?"
 echo "a) Create a new VPN connection to a partner"
 echo "b) Modify an existing VPN connection"
@@ -12,9 +12,9 @@ echo "c) Delete an existing VPN connection"
 echo "d) Directly access the CLI of a VPN endpoint (advanced)"
 echo "e) Check for updates"
 IFS= read -r -p "> " user_input
-}
+  }
 greeting
-user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
+user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]' | xargs)
 	if [ "$user_input" == "a" ]
 	then 
 		echo "You want to create a new VPN with a partner. This setup wizard will take you through most of the common parameters needed to build a connection." | fold -w 80
@@ -23,6 +23,8 @@ user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
 		echo "a) Policy-based VPN"
 		echo "b) Route-based VPN"
 		echo "c) I have no clue. Help me out!"
+		echo "d) Go back to last question."
+		echo "e) Return to main menu"
 		
 		
 		
@@ -33,6 +35,10 @@ user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
 				echo "*****************************************************************************" | fold -w 80
 				echo "             PHASE 1 (aka. IKE or ISAKMP) Settings                           " | fold -w 80
 				echo "*****************************************************************************" | fold -w 80
+				
+				echo "What is the public IP of the peer that you want to establish a VPN with?"
+				echo "a) Enter IP"
+				echo "b) Go back to last question
 				
 				echo ""
 				echo "What version of IKE do you want to use?"
@@ -86,6 +92,8 @@ user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
 							echo "c) I have no clue what to use. Help me out!"
 
 							 echo "What diffie-hellman group number do you want to use for PFS? You can choose 2, 5, or anything between 14-26. You can also type \"H\" or \"help\" if you need help."
+							 
+								echo "Specify the network(s) behind the remote VPN peer that you want to communicate with over the tunnel. Separate networks by commas. For example \"172.17.0.0/24,10.0.0.0/16\" . You can also type \"H\" or \"help\" if you need help)."
 							 
 
 		
