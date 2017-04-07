@@ -1,0 +1,1 @@
+*/2 * * * * . /$HOME/.bashrc;/usr/bin/aws ec2 create-route --route-table-id $MYROUTETABLE --destination-cidr-block 0.0.0.0/0 --gateway-id $MYIGW --region $MYREGION

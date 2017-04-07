@@ -227,7 +227,6 @@
 			}
 		},
 		
-		
 		"controlboxEC2": {
 			"DependsOn": "CSroutetable",
 			"CreationPolicy" : {
@@ -261,7 +260,7 @@
 								"owner": "ec2-user",
 								"group": "ec2-user"
 							}
-						},
+							},
 						"commands": {
 							"setigw": {
 								"command": "echo export MYIGW=\"$MYIGW\" >> /home/ec2-user/.bashrc",
@@ -304,7 +303,7 @@
 						}
 					}
 				}
-			},
+			} },
 
 			"Properties": {
 				"UserData": {
@@ -446,9 +445,7 @@
 				]
 			}
 		},
-		
-		
-	
+
 		"CloudShroudPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
