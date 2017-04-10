@@ -13,8 +13,7 @@ greeting_f () {
 	echo "d) Directly access the CLI of a VPN endpoint (advanced)"
 	echo "e) Check for updates"
 IFS= read -r -p "> " user_answer
-  }
-greeting_f
+
 user_input=$(echo "$user_answer" | tr '[:upper:]' '[:lower:]' | xargs)
 	if [ "$user_input" == "a" ]
 	then 
@@ -94,12 +93,14 @@ ike_version_f
 
 
 		
-	elif [ "$user_input" == "b" ]
-	then 
-		echo "let's connect to the endpoints"
 	elif [ "$user_input" == "c" ]
+	then 
+		echo "boo"
+	elif [ "$user_input" == "e" ]
 	then
-		./update_endpoints
+		. /etc/cloudshroud/update_endpoints
 	else
 		echo "oops, something isn't right..."
 fi
+}
+greeting_f
