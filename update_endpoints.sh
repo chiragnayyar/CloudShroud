@@ -14,7 +14,7 @@ cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 # Check if the cloudshround control box needs to update
 function update_local_f () {
 echo ""
-echo "Please be patient! Updating can take a few minutes to complete especially if this is the first time or it's been awhile since last update." | fold -w 80
+echo "Please be patient! Updating can take a few minutes to complete especially if  it's been awhile since last update." | fold -w 80
 echo "Grab yourself some coffee!"
 echo "Updating CloudShroud control box..."
 sudo yum update -y >> /dev/null && sudo yum upgrade -y >> /dev/null
