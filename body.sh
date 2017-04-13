@@ -1,6 +1,5 @@
 #!/bin/bash
 
-clear
 echo ""
 echo "*****************************************************************************" | fold -w 80
 echo "                      !! Welcome to CloudShroud !!                      "
@@ -20,12 +19,13 @@ user_input=$(echo "$user_answer" | tr '[:upper:]' '[:lower:]' | xargs)
 if [ "$user_input" == "a" ]
 then new_vpn_name_f () {
 	echo ""
-	echo "Give your new VPN a meaningful name that will help you easily identify it (Max 32 characters which include lower/upper case A-Z and/or digits). You can also type the word \"main\" to go back to the main menu." | fold -w 80
+	echo "Give your new VPN a meaningful name that will help you easily identify it (Max32 characters which include lower/upper case A-Z and/or digits). You can also type the word \"main\" to go back to the main menu." | fold -w 80
 	IFS= read -r -p "> " new_vpn_name
 	new_vpn_name=$(echo "$new_vpn_name" | xargs)
 	
 	if [[ "$new_vpn_name" =~ ^[a-zA-Z0-9]{1,32}$ ]] && [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" != "main" ]
 	then
+		echo ""
 		echo "$new_vpn_name will be the name of this VPN..."
 	elif [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" == "main" ]
 	then 
@@ -64,27 +64,34 @@ pub_peer_ip_f
 
 ike_version_f () {
 	echo ""
-	echo "What version of IKE do you want to use?"
-	echo "a) IKEv1 (most common)"
+	echo "What version of IKE do you want to use? Hit ENTER to use the default"
+	echo "a) IKEv1 (default)"
 	echo "b) IKEv2"
 	echo "c) What is this?"
 	echo "d) Go back to previous question"
 	echo "e) Go back to main menu"
 IFS= read -r -p "> " ike_version
-ike_version=$(echo "$ike_version" | xargs)
+ike_version=$(echo "$ike_version" | tr '[:upper:]' '[:lower:]')
 
 # create the menu options array
 declare -A ike_version_options=( ["a"]="ikev1" ["b"]="ikev2" ) 
 
 # Check user answer
-if [ "$ike_version" == "a" ] || [ "$ike_version" == "b" ]
+if [ "$(echo $ike_version | xargs)" == "a" ] || [ "$(echo $ike_version | xargs)" == "b" ]
 then
-	ike_version=${ike_version_options[$ike_version]}
+	ike_version=${ike_version_options["$(echo $ike_version | xargs)"]}
+	echo ""
 	echo "Setting $ike_version as the version for this VPN..."
+	
+elif [ "$(echo $ike_version)" = "" ]
+then	
+    echo "Setting IKEv1 as the version for this VPN..."
+	ike_version=ikev1
+
 elif [ "$ike_version" == "c" ]
 then
 	echo ""
-	cat /etc/cloudshroud/descriptions/ikeversion_description | fold -w 80
+	sudo cat /etc/cloudshroud/descriptions/ikeversion_description | fold -w 80
 	ike_version_f
 
 elif [ "$ike_version" == "d" ] 

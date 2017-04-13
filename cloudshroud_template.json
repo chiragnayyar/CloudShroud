@@ -304,7 +304,10 @@
 									}
 								}
 
-							}
+							},
+							"clearbeforewelcome" {
+								"command" "echo clear >> /home/ec2-user/.bashrc",
+								}
 						},
 						"sources": {
 							"/etc/cloudshroud/descriptions": "https://github.com/mysteryguy123/CloudShroud/raw/master/descriptions.zip"
@@ -322,6 +325,7 @@
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
 								"# Create the CloudShroud directory for all the files\n",
+								" hostname CScontrolbox\n",
 								" mkdir /etc/cloudshroud/\n",
 								" chown ec2-user:ec2-user /etc/cloudshroud/\n",
 								"# Install the files and packages from the metadata\n",
