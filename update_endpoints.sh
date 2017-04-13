@@ -11,6 +11,9 @@ cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 
 cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
+# Check if the cloudshround control box needs to update
+sudo yum update -y >> /dev/null && sudo yum upgrade -y >> /dev/null
+
 # Function to check the OS version of VYos and update if needed.
 function update_f () {
 
@@ -23,7 +26,7 @@ set timeout 2
 spawn ssh -q -i /home/ec2-user/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 
 proc update_fun {} {
-	puts "please wait, this may take a few minutes."
+	puts "Please wait. This may take a few minutes."
 	puts "updating to latest version..."
 	puts ""
 send "\r"
@@ -149,6 +152,7 @@ else
 				echo "SSH Agent Forwarder enabled."
 				echo "continuing with setup...."
 				ssh_keys_f 
+				. /etc/cloudshroud/body.sh
 		
 		else
 			if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
@@ -156,9 +160,9 @@ else
 					ssh_keys_f
 				else	
 					echo ""
-					printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud initial setup.\n (TIP: Google 'setting up ssh agent forwarding')\n" | fold -sw 80
+					printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud updates.\n (TIP: Google 'setting up ssh agent forwarding')\n" | fold -sw 80
 					echo ""
-					exit 0
+					. /etc/cloudshroud.body.sh
 				fi
 
 		fi

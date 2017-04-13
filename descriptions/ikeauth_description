@@ -1,0 +1,1 @@
+Your partner may have given you a form which includes the parameters to use to build a VPN with their company. Look for the 'authentication' OR 'hash' field under the phase 1 section ( phase 1 is also referred to as 'isakmp' or 'ike' by some companies). If you do not see this section, you may try just going with SHA1 for now as this is a very common authentication that is used.

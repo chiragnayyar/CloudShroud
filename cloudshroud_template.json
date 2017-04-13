@@ -248,8 +248,14 @@
 							}
 						},
 						"files": {
-							"/etc/update_endpoints.sh": {
+							"/etc/cloudshroud/update_endpoints.sh": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/update_endpoints.sh",
+								"mode": "000755",
+								"user": "ec2-user",
+								"group": "ec2-user"
+							},
+							"/etc/cloudshroud/body.sh": {
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/body.sh",
 								"mode": "000755",
 								"user": "ec2-user",
 								"group": "ec2-user"
@@ -299,17 +305,21 @@
 								}
 
 							}
+
 							
 						}
 					}
 				}
-			} ,
+			},
 
 			"Properties": {
 				"UserData": {
 					"Fn::Base64": {
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
+								"# Create the CloudShroud directory for all the files\n",
+								" mkdir /etc/cloudshroud/\n",
+								" chown ec2-user:ec2-user /etc/cloudshroud/\n",
 								"# Install the files and packages from the metadata\n",
 								"/opt/aws/bin/cfn-init -v ",
 								"         --stack ", {

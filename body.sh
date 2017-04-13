@@ -1,4 +1,6 @@
 #!/bin/bash
+
+clear
 echo ""
 echo "*****************************************************************************" | fold -w 80
 echo "                      !! Welcome to CloudShroud !!                      "
@@ -18,11 +20,11 @@ user_input=$(echo "$user_answer" | tr '[:upper:]' '[:lower:]' | xargs)
 if [ "$user_input" == "a" ]
 then new_vpn_name_f () {
 	echo ""
-	echo "Give your new VPN a meaningful name that will help you easily identify it (Max 32 characters which include lower/upper case A-Z and/or digits). You can also type the word \"main\" to go back to the main menu."
+	echo "Give your new VPN a meaningful name that will help you easily identify it (Max 32 characters which include lower/upper case A-Z and/or digits). You can also type the word \"main\" to go back to the main menu." | fold -w 80
 	IFS= read -r -p "> " new_vpn_name
 	new_vpn_name=$(echo "$new_vpn_name" | xargs)
 	
-	if [ "$new_vpn_name" =~ ^[a-zA-Z0-9]{1,32}$ ] && [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" != "main" ]
+	if [[ "$new_vpn_name" =~ ^[a-zA-Z0-9]{1,32}$ ]] && [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" != "main" ]
 	then
 		echo "$new_vpn_name will be the name of this VPN..."
 	elif [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" == "main" ]
