@@ -45,7 +45,7 @@ echo "**************************************************************************
 
 pub_peer_ip_f () {
 	echo ""
-	echo "What is the public IP of the peer that you want to establish a VPN with? (You can also type \"main\" to go back to the main menu)" | fold -w 80
+	echo "What is the public IP of the peer that you want to establish a VPN with (in the form xx.xx.xx.xx) ? You can also type \"main\" to go back to the main menu" | fold -w 80
 IFS= read -r -p "> " peer_pub_ip
 peer_pub_ip=$(echo "$peer_pub_ip" | xargs)
 

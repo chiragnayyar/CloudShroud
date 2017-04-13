@@ -12,7 +12,13 @@ cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
 # Check if the cloudshround control box needs to update
+function update_local_f () {
+echo ""
+echo "Please be patient! Updating can take a few minutes to complete especially if this is the first time or it's been awhile since last update." | fold -w 80
+echo "Grab yourself some coffee!"
+echo "Updating CloudShroud control box..."
 sudo yum update -y >> /dev/null && sudo yum upgrade -y >> /dev/null
+}
 
 # Function to check the OS version of VYos and update if needed.
 function update_f () {
@@ -26,7 +32,6 @@ set timeout 2
 spawn ssh -q -i /home/ec2-user/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 
 proc update_fun {} {
-	puts "Please wait. This may take a few minutes."
 	puts "updating to latest version..."
 	puts ""
 send "\r"
@@ -67,16 +72,13 @@ set output $expect_out(1,string)
 }
 
 if {![info exists output]} {
-	puts ""
 	puts "Endpoint is out of date."
 	set running [update_fun]
 
 } elseif {$output == "1.1.7"} {
-	puts ""
 	puts "Endpoint is up to date with VYos version $output"
 	
 } else {
-	puts ""
 	puts "Endpoint is out of date."
 	set running [update_fun]
 }
@@ -143,6 +145,7 @@ function ssh_keys_f {
 if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
 then 
     echo "SSH keys between controlbox and VPN endpoints have been created."
+	update_local_f
 	ssh_keys_f 
 else
 
@@ -151,12 +154,14 @@ else
 		then
 				echo "SSH Agent Forwarder enabled."
 				echo "continuing with setup...."
+				update_local_f
 				ssh_keys_f 
 				. /etc/cloudshroud/body.sh
 		
 		else
 			if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
 				then 
+					update_local_f
 					ssh_keys_f
 				else	
 					echo ""
