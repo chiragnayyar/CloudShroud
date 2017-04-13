@@ -254,6 +254,12 @@
 								"user": "ec2-user",
 								"group": "ec2-user"
 							},
+							"/etc/cloudshroud/.initial_setup" : {
+								"content": "0"
+								"mode": "000600",
+								"user": "ec2-user",
+								"group": "ec2-user"
+							}
 							"/etc/cloudshroud/body.sh": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/body.sh",
 								"mode": "000755",
@@ -305,9 +311,16 @@
 								}
 
 							},
-							"clearbeforewelcome": {
-								"command" "echo clear >> /home/ec2-user/.bashrc"
+							"loginscripta": {
+								"command":"echo clear >> /home/ec2-user/.bashrc"
+								},
+							"startscriptb": {
+								"command": "echo $'\nForceCommand /etc/cloudshroud/body.sh' >> /etc/ssh/sshd_config"
+								},
+							"startscriptrestart": {
+								"command": "service sshd restart"
 								}
+
 						},
 						"sources": {
 							"/etc/cloudshroud/descriptions": "https://github.com/mysteryguy123/CloudShroud/raw/master/descriptions.zip"
@@ -325,7 +338,6 @@
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
 								"# Create the CloudShroud directory for all the files\n",
-								" hostname CScontrolbox\n",
 								" mkdir /etc/cloudshroud/\n",
 								" chown ec2-user:ec2-user /etc/cloudshroud/\n",
 								"# Install the files and packages from the metadata\n",

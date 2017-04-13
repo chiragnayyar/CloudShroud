@@ -16,6 +16,11 @@ greeting_f () {
 IFS= read -r -p "> " user_answer
 
 user_input=$(echo "$user_answer" | tr '[:upper:]' '[:lower:]' | xargs)
+
+# Check to make sure the initial setup has been completed
+if [ "$(echo /etc/cloudshroud/.initial_setup)" == "1" ]
+then 
+
 if [ "$user_input" == "a" ]
 then new_vpn_name_f () {
 	echo ""
@@ -125,6 +130,15 @@ ike_version_f
 		. /etc/cloudshroud/update_endpoints.sh
 	else
 		echo "oops, something isn't right..."
+fi
+
+elif [ "$(echo /etc/cloudshroud/.initial_setup)" == "0" ] && [ "$user_answer" == "e" ]
+then
+	. /etc/cloudshroud/update_endpoints
+	
+else
+	echo "You must choose 'e) Check for updates' to complete initial setup of CloudShroud before you can do anything else"
+	greeting_f
 fi
 }
 greeting_f

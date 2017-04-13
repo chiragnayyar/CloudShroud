@@ -171,3 +171,5 @@ else
 
 		fi
 fi
+sed -i '$ d' /etc/cloudshroud/.initial_setup
+echo "1" >> /etc/cloudshroud/.initial_setup
