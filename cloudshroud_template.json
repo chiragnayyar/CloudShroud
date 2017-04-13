@@ -305,8 +305,8 @@
 								}
 
 							},
-							"clearbeforewelcome" {
-								"command" "echo clear >> /home/ec2-user/.bashrc",
+							"clearbeforewelcome": {
+								"command" "echo clear >> /home/ec2-user/.bashrc"
 								}
 						},
 						"sources": {
