@@ -171,3 +171,4 @@ else
 
 		fi
 fi
+rm -- $0
