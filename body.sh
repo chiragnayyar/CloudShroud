@@ -15,16 +15,25 @@ greeting_f () {
 IFS= read -r -p "> " user_answer
 
 user_input=$(echo "$user_answer" | tr '[:upper:]' '[:lower:]' | xargs)
-	if [ "$user_input" == "a" ]
+if [ "$user_input" == "a" ]
+then new_vpn_name_f () {
+	echo ""
+	echo "Give your new VPN a meaningful name that will help you easily identify it (Max 32 characters which include lower/upper case A-Z and/or digits). You can also type the word \"main\" to go back to the main menu."
+	IFS= read -r -p "> " new_vpn_name
+	new_vpn_name=$(echo "$new_vpn_name" | xargs)
+	
+	if [ "$new_vpn_name" =~ ^[a-zA-Z0-9]{1,32}$ ] && [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" != "main" ]
+	then
+		echo "$new_vpn_name will be the name of this VPN..."
+	elif [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" == "main" ]
 	then 
-		echo "You want to create a new VPN with a partner. This setup wizard will take you through most of the common parameters needed to build a connection." | fold -w 80	
-		echo "Do you want to setup a 'policy-based' or 'route-based' VPN?"
-		echo "a) Policy-based VPN"
-		echo "b) Route-based VPN"
-		echo "c) I have no clue. Help me out!"
-		echo "d) Go back to last question."
-		echo "e) Return to main menu"
-		
+		greeting_f
+	else
+		echo "Invalid name: Please ensure the name is no less than 1 character, no more than 32, and is only using lower/upper case A-Z and/or digits"
+		new_vpn_name_f
+	fi
+	}
+	new_vpn_name_f
 				
 echo ""
 echo "*****************************************************************************" | fold -w 80
@@ -92,13 +101,19 @@ ike_version_f
 
 
 
+
+
+
+
+
+
 		
 	elif [ "$user_input" == "c" ]
 	then 
 		echo "boo"
 	elif [ "$user_input" == "e" ]
 	then
-		. /etc/cloudshroud/update_endpoints
+		. /etc/cloudshroud/update_endpoints.sh
 	else
 		echo "oops, something isn't right..."
 fi
