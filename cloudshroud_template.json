@@ -255,7 +255,7 @@
 								"group": "ec2-user"
 							},
 							"/etc/cloudshroud/.initial_setup" : {
-								"content": "\n0",
+								"content": "0",
 								"mode": "000600",
 								"user": "ec2-user",
 								"owner": "ec2-user",

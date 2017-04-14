@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo ""
-echo "Your partner may have given you a form which includes the parameters to use to build a VPN with their company. Look for the 'diffie-helman group', 'group', or 'dh group' field under the phase 2 section (phase 2 is also referred to as 'ipsec' by some companies). This field may also be next to 'PFS' if your partner has this feature enabled. If you do not see anything like this, you may try just going with '2' for now as this is a very common dh group number that is used." | fold -w 80
-echo ""

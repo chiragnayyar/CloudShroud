@@ -1,4 +1,0 @@
-#!/bin/bash
-echo ""
-echo "Perfect Forward Secrecy (PFS) offers an additional layer of security for phase 2. Many endpoints, including AWS VPN endpoints, use this feature. Enable it if your partner request it to be enabled. Your VPN will likely not establish if there is a mismatch in this setting between VPN peers." | fold -w 80
-echo ""

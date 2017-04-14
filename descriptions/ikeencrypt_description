@@ -1,4 +1,0 @@
-#!/bin/bash
-echo ""
-echo "Your partner may have given you a form which includes the parameters to use to build a VPN with their company. Look for the 'encryption' field under the phase 1 section (phase 1 is also referred to as 'isakmp' or 'ike' by some companies). If you do not see this section, you may try just going with AES256 for now as this is a very common encryption that is used." | fold -w 80
-echo ""

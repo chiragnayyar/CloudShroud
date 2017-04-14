@@ -1,8 +1,0 @@
-#!/bin/bash
-echo ""
-echo "Policy-based VPN: Many popular firewalls (such as the Cisco ASA) use the policy-based VPN implementation. This is where a individual routing policy or ACL is created for every source <--> destination network that is to be routed over the VPN. With this implementation of VPN, ACLs or policies are used as VPN traffic selectors rather than a local route table lookup." | fold -w 80
-echo "\n"
-echo "Route-based VPN: This VPN implementation relies on the use of virtual tunnel interfaces (VTI) which are assigned virtual IPs. A firewall using this VPN implementation relies on its local route table for determining which traffic is to be encrypted and sent out a VPN tunnel." | fold -w 80
-echo "\n"
-echo "CloudShroud supports both of the above mentioned implementations, so you will want to ask your partner if their firewall uses policy-based (aka 'domain-based' as well) or route-based VPN. If they don't know for sure, then go with route-based VPN for now." | fold -w 80
-echo ""
