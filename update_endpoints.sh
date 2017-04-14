@@ -14,8 +14,9 @@ cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 # Check if the cloudshround control box needs to update
 function update_local_f () {
 echo ""
-echo "Please be patient! Updating can take a few minutes to complete especially if  it's been awhile since last update." | fold -w 80
+echo "Please be patient! Updating can take a few minutes to complete especially if it has been awhile since last update."
 echo "Grab yourself some coffee!"
+echo ""
 echo "Updating CloudShroud control box..."
 sudo yum update -y >> /dev/null && sudo yum upgrade -y >> /dev/null
 }
@@ -131,6 +132,8 @@ function ssh_keys_f {
 	then 
 		update_f $cloudshrouda_private $cloudshrouda_public
 		update_f $cloudshroudb_private $cloudshroudb_public
+		echo ""
+		echo "Done!!"
 	else
 		ssh-keygen -t rsa -b 1024 -N "" -f /home/ec2-user/.ssh/healthcheck.key >> /dev/null
 		replace_key_f $cloudshrouda_private
@@ -139,13 +142,17 @@ function ssh_keys_f {
 		make_key_perm_f $cloudshroudb_private
 		update_f $cloudshrouda_private $cloudshrouda_public
 		update_f $cloudshroudb_private $cloudshroudb_public
+		echo ""
+		echo "Done!!"
 	fi
 }
 if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
 then 
     echo "SSH keys between controlbox and VPN endpoints have been created."
 	update_local_f
-	ssh_keys_f 
+	ssh_keys_f
+	sed -i '$ d' /etc/cloudshroud/.initial_setup
+    echo 1 >> /etc/cloudshroud/.initial_setup
 else
 
 # Check if SSH agent-forwarding is enabled. This is required for initial CloudShroud setup.
@@ -155,6 +162,8 @@ else
 				echo "continuing with setup...."
 				update_local_f
 				ssh_keys_f 
+				sed -i '$ d' /etc/cloudshroud/.initial_setup
+				echo 1 >> /etc/cloudshroud/.initial_setup
 				. /etc/cloudshroud/body.sh
 		
 		else
@@ -162,14 +171,15 @@ else
 				then 
 					update_local_f
 					ssh_keys_f
+					sed -i '$ d' /etc/cloudshroud/.initial_setup
+					echo 1 >> /etc/cloudshroud/.initial_setup
+					. /etc/cloudshroud/body.sh
 				else	
 					echo ""
-					printf "You do not have SSH agent forwarding enabled. Please enable this feature on your\n Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud updates.\n (TIP: Google 'setting up ssh agent forwarding')\n" | fold -sw 80
+					echo "You do not have SSH agent forwarding enabled. Please enable this feature on your Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud updates. (TIP: Google 'setting up ssh agent forwarding')" 
 					echo ""
 					. /etc/cloudshroud/body.sh
 				fi
 
 		fi
 fi
-sed -i '$ d' /etc/cloudshroud/.initial_setup
-echo "1" >> /etc/cloudshroud/.initial_setup
