@@ -40,8 +40,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						echo "Invalid name: Please ensure the name is 1-32 characters, and is only using lower/upper case A-Z and/or digits"
 						new_vpn_name_f
 					fi
-					}
-	new_vpn_name_f
+		
+			}		
+	
 								
 				echo ""
 				echo "*****************************************************************************" 
@@ -66,8 +67,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "Please enter a valid IP"
 					pub_peer_ip_f
 				fi
-				}
-	pub_peer_ip_f
+			}	
+	
 
 				ike_version_f () {
 					echo ""
@@ -105,6 +106,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				elif [ "$ike_version" == "d" ] 
 				then 
 					pub_peer_ip_f
+					ike_version_f
 
 				elif [ "$ike_version" == "e" ]
 				then 
@@ -113,8 +115,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   echo "Please choose a valid option"
 				   ike_version_f
 				fi
-				}
-	ike_version_f
+			}	
+	
 
 				ike_encrypt_f () {
 					echo ""
@@ -152,6 +154,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				elif [ "$ike_encrypt" == "f" ] 
 				then 
 					ike_version_f
+					ike_encrypt_f
 
 				elif [ "$ike_encrypt" == "g" ]
 				then 
@@ -160,14 +163,15 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   echo "Please choose a valid option"
 				   ike_encrypt_f
 				fi
-				}
-	ike_encrypt_f
+			}
+	
 				
 				ike_auth_f () {
+				    echo ""
 					echo "What type of authentication do you want to use for phase 1?"
-					echo "a) sha1"
-					echo "b) sha256"
-					echo "c) md5"
+					echo "a) SHA1 (default)"
+					echo "b) SHA256"
+					echo "c) MD5"
 					echo "d) What is this?"
 					echo "e) Go back to previous question"
 					echo "f) Go back to main menu"
@@ -197,6 +201,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				elif [ "$ike_auth" == "e" ]
 				then 
 					ike_encrypt_f
+					ike_auth_f
 				elif [ "ike_auth" == "f" ]
 				then
 					body_f
@@ -204,11 +209,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   echo "Please choose a valid option"
 				   ike_auth_f
 				fi
-				}
-	ike_auth_f
+			}
+	
 				
 				ike_dh_f () {
-					 echo "What diffie-hellman group number do you want to use for phase 1? You can type 2, 5, or any number between 14-26, OR you can hit ENTER to use default (which is DH group 2). "
+					 echo ""
+					 echo "What DH group number do you want to use for phase 1? You can type 2, 5, or any number between 14-26, OR you can hit ENTER to use default (DH group 2). "
 					 echo "a) What is this?"
 					 echo "b) Go back to previous question"
 					 echo "c) Go back to main menu"
@@ -217,7 +223,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				
 				# check user answer
-				if [[ "$(echo $ike_dh)" =~ [2,5,14-26] ]]
+				if [[ $(echo $ike_dh) =~ ^(2|5|1[4-9]|2[0-6])$ ]]
 				then 
 					ike_dh=$(echo "$ike_dh" | xargs)
 					echo ""
@@ -235,7 +241,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 
 				elif [ "$ike_dh" == "b" ]
 				then 
-					ike_encrypt_f
+					ike_auth_f
+					ike_dh_f
 				elif [ "$ike_dh" == "c" ]
 				then
 					body_f
@@ -243,9 +250,79 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   echo "Please choose a valid option"
 				   ike_dh_f
 				fi
-				}
-	ike_dh_f
+			}
 				
+				ike_psk_f () {
+				   echo ""
+				   echo "You will need to specify a Preshared Key for this connection (10-32 alphanumberic characters). Please choose one of the following options"
+				   echo "a) I already have a PSK that I want use"
+				   echo "b) I need to generate a new PSK"
+				   echo "c) What is this?"
+				   echo "e) Go back to previous question"
+				   echo "f) Go back to main menu"
+				IFS= read -r -p "> " ike_psk
+				ike_psk=$(echo "$ike_psk" | tr '[:upper:]' '[:lower:]' | xargs)
+
+				# check user answer
+				if [ "$(echo $ike_psk)" == "a" ]
+				then 
+				enter_psk_f () {
+					echo ""
+					echo "Please enter the preshared Key, or type \"goback\" to go back to the previous menu options"
+					IFS= read -r -p "> " ike_psk
+					ike_psk=$(echo "$ike_psk" | tr '[:upper:]' '[:lower:]' | xargs)
+					  if [ "$(echo ike_psk)" == "goback" ]
+					   then 
+					      ike_psk_f
+						  enter_psk_f
+					   elif [[ "$(echo ike_psk)" =~ +{10,32} ]]
+						  echo "$ike_psk will be used as the Preshared Key for both tunnels of this VPN"
+					   else 
+						  echo ""
+					      echo "Please choose an Preshared Key made of 10-32 alphanumeric characters"
+						  enter_psk_f 
+					  fi
+					}
+					enter_psk_f
+					
+				elif [ "$(echo $ike_psk)" == "b" ]
+				then
+					ike_psk=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+					echo ""
+					echo "$ike_psk will be used as the Preshared Key for both tunnels of this VPN"
+				elif [ "$ike_psk" == "c" ]				
+				then 
+					echo ""
+					sudo cat /etc/cloudshroud/descriptions/ikepsk_description
+					ike_psk_f
+
+				elif [ "$ike_psk" == "e" ]
+				then 
+					ike_dh_f
+					ike_psk_f
+				elif [ "$ike_psk" == "f" ]
+				then
+					body_f
+				else
+				   echo "Please choose a valid option"
+				   ike_psk_f
+				fi
+			}
+				
+				
+				
+
+			
+			
+	
+	new_vpn_name_f			
+	pub_peer_ip_f
+	ike_version_f
+	ike_encrypt_f
+	ike_auth_f
+	ike_dh_f
+	ike_psk_f
+
 				
 				
 				
@@ -270,6 +347,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 elif [ "$(cat /etc/cloudshroud/.initial_setup)" == "0" ] && [ "$user_input" == "e" ]
 then
 	. /etc/cloudshroud/update_endpoints.sh
+elif [ "$(cat /etc/cloudshroud/.initial_setup)" == "0" ] && [ "$user_input" == "f" ]
+then
+	bash
 	
 else
 	echo "You must choose 'e) Check for updates' to complete initial setup of CloudShroud before you can do anything else"
