@@ -269,14 +269,15 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				enter_psk_f () {
 					echo ""
 					echo "Please enter the preshared Key, or type \"goback\" to go back to the previous menu options"
-					IFS= read -r -p "> " ike_psk
-					ike_psk=$(echo "$ike_psk" | tr '[:upper:]' '[:lower:]' | xargs)
-					  if [ "$(echo ike_psk)" == "goback" ]
+					IFS= read -r -p "> " ike_enter
+					ike_enter=$(echo "$ike_enter" | tr '[:upper:]' '[:lower:]' | xargs)
+					  if [ "$(echo ike_enter)" == "goback" ]
 					   then 
 					      ike_psk_f
 						  enter_psk_f
-					   elif [[ "$(echo ike_psk)" =~ +{10,32} ]]
-						  echo "$ike_psk will be used as the Preshared Key for both tunnels of this VPN"
+					   elif [[ "$(echo ike_enter)" =~ ([a-zA-Z0-9]{10,32}) ]]
+					   then
+						  echo "$ike_enter will be used as the Preshared Key for both tunnels of this VPN"
 					   else 
 						  echo ""
 					      echo "Please choose an Preshared Key made of 10-32 alphanumeric characters"
@@ -296,7 +297,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					sudo cat /etc/cloudshroud/descriptions/ikepsk_description
 					ike_psk_f
 
-				elif [ "$ike_psk" == "e" ]
+				elif [ "$ike_psk" == "e" ]a
 				then 
 					ike_dh_f
 					ike_psk_f
