@@ -29,11 +29,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					IFS= read -r -p "> " new_vpn_name
 					new_vpn_name=$(echo "$new_vpn_name" | xargs)
 					
-					if [[ "$new_vpn_name" =~ ^[a-zA-Z0-9]{1,32}$ ]] && [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" != "main" ]
+					if [[ "$new_vpn_name" =~ ^[a-zA-Z0-9]{1,32}$ ]] && [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]')" != "main" ]
 					then
-						echo ""
-						echo "$new_vpn_name will be the name of this VPN..."
-					elif [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]' | xargs)" == "main" ]
+						echo 
+					elif [ "$(echo $new_vpn_name | tr '[:upper:]' '[:lower:]')" == "main" ]
 					then 
 						body_f
 					else
@@ -42,13 +41,13 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					fi
 		
 			}		
-	
-								
+                ike_banner_f (){	
+				clear		
 				echo ""
 				echo "*****************************************************************************" 
 				echo "             PHASE 1 (aka. IKE or ISAKMP) Settings                           " 
 				echo "*****************************************************************************" 
-
+			}
 
 				pub_peer_ip_f () {
 					echo ""
@@ -58,8 +57,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 
 				if [[ $peer_pub_ip =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$ ]]
 				  then
-					echo ""
-					echo "Setting $peer_pub_ip as the IP of the remote VPN peer..."
+					echo 
 				  elif [ "$peer_pub_ip" == "main" ]
 				  then
 					body_f
@@ -88,13 +86,11 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				if [ "$(echo $ike_version | xargs)" == "a" ] || [ "$(echo $ike_version | xargs)" == "b" ]
 				then
 					ike_version=${ike_version_options["$(echo $ike_version | xargs)"]}
-					echo ""
-					echo "Setting $ike_version as the version for this VPN..."
+					echo 
 					
 				elif [ "$(echo $ike_version)" = "" ]
 				then
-					echo ""
-					echo "Setting ikev1 as the version for this VPN..."
+					echo 
 					ike_version=ikev1
 
 				elif [ "$ike_version" == "c" ]
@@ -122,41 +118,38 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo ""
 					echo "What encryption strength do you want to use for phase 1? Hit ENTER to use the default"
 					echo "a) AES128 (default)"
-					echo "b) AES192"
-					echo "c) AES256"
-					echo "d) 3DES"
-					echo "e) What is this?"
-					echo "f) Go back to previous question"
-				    echo "g) Go back to main menu"
+					echo "b) AES256"
+					echo "c) 3DES"
+					echo "d) What is this?"
+					echo "e) Go back to previous question"
+				    echo "f) Go back to main menu"
 				IFS= read -r -p "> " ike_encrypt
 				ike_encrypt=$(echo "$ike_encrypt" | tr '[:upper:]' '[:lower:]')
 				
 				# create the menu options array
-				declare -A ike_encrypt_options=( ["a"]="aes128" ["b"]="aes192" ["c"]="aes256" ["d"]="3des" )
+				declare -A ike_encrypt_options=( ["a"]="aes128" ["b"]="aes256" ["c"]="3des" )
 				
 				# check user answer
-				if [ "$(echo $ike_encrypt | xargs)" == "a" ] || [ "$(echo $ike_encrypt | xargs)" == "b" ] || [ "$(echo $ike_encrypt | xargs)" == "c" ] || [ "$(echo $ike_encrypt | xargs)" == "d" ]
+				if [ "$(echo $ike_encrypt | xargs)" == "a" ] || [ "$(echo $ike_encrypt | xargs)" == "b" ] || [ "$(echo $ike_encrypt | xargs)" == "c" ]
 				then 
 					ike_encrypt=${ike_encrypt_options["$(echo $ike_encrypt| xargs)"]}
-					echo ""
-					echo "Setting $ike_encrypt as the encryption for this VPN..."
+					echo 
 				elif [ "$(echo $ike_encrypt)" = "" ]
 				then
-					echo ""
-					echo "Setting aes128 as the encryption for this VPN..."
+					echo
 					ike_encrypt=aes128
-				elif [ "$ike_encrypt" == "e" ]
+				elif [ "$ike_encrypt" == "d" ]
 				then
 					echo ""
 					sudo cat /etc/cloudshroud/descriptions/ikeencrypt_description
 					ike_encrypt_f
 
-				elif [ "$ike_encrypt" == "f" ] 
+				elif [ "$ike_encrypt" == "e" ] 
 				then 
 					ike_version_f
 					ike_encrypt_f
 
-				elif [ "$ike_encrypt" == "g" ]
+				elif [ "$ike_encrypt" == "f" ]
 				then 
 					body_f
 				else
@@ -185,12 +178,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				if [ "$(echo $ike_auth | xargs)" == "a" ] || [ "$(echo $ike_auth | xargs)" == "b" ] || [ "$(echo $ike_auth | xargs)" == "c" ]
 				then 
 					ike_auth=${ike_auth_options["$(echo $ike_auth| xargs)"]}
-					echo ""
-					echo "Setting $ike_auth as the authentication for this VPN..."
-				elif [ "$(echo $ike_auth)" = "" ]
+					echo 
+				elif [ "$ike_auth" = "" ]
 				then
-					echo ""
-					echo "Setting sha1 as the encryption for this VPN..."
+					echo 
 					ike_auth=sha1
 				elif [ "$ike_auth" == "d" ] 
 				then 
@@ -202,7 +193,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then 
 					ike_encrypt_f
 					ike_auth_f
-				elif [ "ike_auth" == "f" ]
+				elif [ "$ike_auth" == "f" ]
 				then
 					body_f
 				else
@@ -223,15 +214,13 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				
 				# check user answer
-				if [[ $(echo $ike_dh) =~ ^(2|5|1[4-9]|2[0-6])$ ]]
+				if [[ $ike_dh =~ ^(2|5|1[4-9]|2[0-6])$ ]]
 				then 
 					ike_dh=$(echo "$ike_dh" | xargs)
-					echo ""
-					echo "Setting $ike_dh as the IKE DH group for this VPN..."
-				elif [ "$(echo $ike_dh)" = "" ]
+					echo 
+				elif [ "$ike_dh" = "" ]
 				then
-					echo ""
-					echo "Setting DH group 2 as the encryption for this VPN..."
+					echo 
 					ike_dh="2"
 				elif [ "$ike_dh" == "a" ] 
 				then 
@@ -264,20 +253,20 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				ike_psk=$(echo "$ike_psk" | tr '[:upper:]' '[:lower:]' | xargs)
 
 				# check user answer
-				if [ "$(echo $ike_psk)" == "a" ]
+				if [ "ike_psk" == "a" ]
 				then 
 				enter_psk_f () {
 					echo ""
 					echo "Please enter the preshared Key, or type \"goback\" to go back to the previous menu options"
 					IFS= read -r -p "> " ike_enter
-					ike_enter=$(echo "$ike_enter" | tr '[:upper:]' '[:lower:]' | xargs)
-					  if [ "$(echo ike_enter)" == "goback" ]
+					ike_enter=$(echo "$ike_enter" | xargs)
+					  if [ "$(echo $ike_enter | tr '[:upper:]' '[:lower:]')" == "goback" ]
 					   then 
 					      ike_psk_f
 						  enter_psk_f
-					   elif [[ "$(echo ike_enter)" =~ ([a-zA-Z0-9]{10,32}) ]]
+					   elif [[ "$ike_enter" =~ ([a-zA-Z0-9]{10,32}) ]]
 					   then
-						  echo "$ike_enter will be used as the Preshared Key for both tunnels of this VPN"
+						  echo
 					   else 
 						  echo ""
 					      echo "Please choose an Preshared Key made of 10-32 alphanumeric characters"
@@ -286,22 +275,22 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					}
 					enter_psk_f
 					
-				elif [ "$(echo $ike_psk)" == "b" ]
+				elif [ "ike_psk" == "b" ]
 				then
 					ike_psk=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
-					echo ""
-					echo "$ike_psk will be used as the Preshared Key for both tunnels of this VPN"
-				elif [ "$ike_psk" == "c" ]				
+					echo 
+				elif [ "ike_psk" == "c" ]				
 				then 
 					echo ""
 					sudo cat /etc/cloudshroud/descriptions/ikepsk_description
+					echo ""
 					ike_psk_f
 
-				elif [ "$ike_psk" == "e" ]a
+				elif [ "ike_psk" == "e" ]
 				then 
 					ike_dh_f
 					ike_psk_f
-				elif [ "$ike_psk" == "f" ]
+				elif [ "ike_psk" == "f" ]
 				then
 					body_f
 				else
@@ -309,13 +298,104 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   ike_psk_f
 				fi
 			}
+			    ipsec_banner_f () {	
+				clear
+				echo ""
+				echo "*****************************************************************************" 
+				echo "                     PHASE 2 (aka. IPSEC) Settings                           " 
+				echo "*****************************************************************************" 
+			}
+				ipsec_encrypt_f () {
+					echo ""
+					echo "What encryption strength do you want to use for phase 2? Hit ENTER to use the default"
+					echo "a) AES128 (default)"
+					echo "b) AES256"
+					echo "c) 3DES"
+					echo "d) What is this?"
+					echo "e) Go back to previous question"
+				    echo "f) Go back to main menu"
+				IFS= read -r -p "> " ipsec_encrypt
+				ipsec_encrypt=$(echo "$ipsec_encrypt" | tr '[:upper:]' '[:lower:]')
 				
+				# create the menu options array
+				declare -A ipsec_encrypt_options=( ["a"]="aes128" ["b"]="aes256" ["c"]="3des" )
 				
+				# check user answer
+				if [ "$ipsec_encrypt" == "a" ] || [ "$ipsec_encrypt" == "b" ] || [ "$ipsec_encrypt" == "c" ]
+				then 
+					ipsec_encrypt=${ipsec_encrypt_options["$(echo $ipsec_encrypt| xargs)"]}
+					echo 
+				elif [ "$ipsec_encrypt" = "" ]
+				then
+					echo 
+					ipsec_encrypt=aes128
+				elif [ "$ipsec_encrypt" == "d" ]
+				then
+					echo ""
+					sudo cat /etc/cloudshroud/descriptions/ipsecencrypt_description
+					ipsec_encrypt_f
+
+				elif [ "$ipsec_encrypt" == "e" ] 
+				then 
+					ike_psk_f
+					ipsec_encrypt_f
+
+				elif [ "$ipsec_encrypt" == "f" ]
+				then 
+					body_f
+				else
+				   echo "Please choose a valid option"
+				   ipsec_encrypt_f
+				fi
+			}
+				ipsec_auth_f () {
+				    echo ""
+					echo "What type of authentication do you want to use for phase 2?"
+					echo "a) SHA1 (default)"
+					echo "b) SHA256"
+					echo "c) MD5"
+					echo "d) What is this?"
+					echo "e) Go back to previous question"
+					echo "f) Go back to main menu"
+				IFS= read -r -p "> " ipsec_auth
+				ipsec_auth=$(echo "$ipsec_auth" | tr '[:upper:]' '[:lower:]')
 				
+				# create the menu options array
+				declare -A ipsec_auth_options=( ["a"]="sha1" ["b"]="sha256" ["c"]="md5" )
+				
+				# check user answer
+				if [ "$ipsec_auth" == "a" ] || [ "$ipsec_auth" == "b" ] || [ "$ipsec_auth" == "c" ]
+				then 
+					ipsec_auth=${ipsec_auth_options["$(echo $ipsec_auth| xargs)"]}
+					echo 
+				elif [ "$ipsec_auth" = "" ]
+				then
+					echo 
+					ipsec_auth=sha1
+				elif [ "$ipsec_auth" == "d" ] 
+				then 
+					echo ""
+					sudo cat /etc/cloudshroud/descriptions/ipsecauth_description
+					ipsec_auth_f
+
+				elif [ "$ipsec_auth" == "e" ]
+				then 
+					ipsec_encrypt_f
+					ipsec_auth_f
+				elif [ "$ipsec_auth" == "f" ]
+				then
+					body_f
+				else
+				   echo "Please choose a valid option"
+				   ipsec_auth_f
+				fi
+			}
+
 
 			
 			
-	
+# ike settings
+	ike_banner_f
 	new_vpn_name_f			
 	pub_peer_ip_f
 	ike_version_f
@@ -324,6 +404,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 	ike_dh_f
 	ike_psk_f
 
+# ipsec settings
+   ipsec_banner_f
+   ipsec_encrypt_f
+   ipsec_auth_f
 				
 				
 				

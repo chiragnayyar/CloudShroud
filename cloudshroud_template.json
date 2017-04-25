@@ -312,12 +312,7 @@
 								}
 
 							},
-							"loginscripta": {
-								"command": "echo $'\nForceCommand /etc/cloudshroud/body.sh' >> /etc/ssh/sshd_config"
-							},
-							"loginstart" : {
-								"command" : "service sshd restart"
-							},	
+	
 							"loginscriptb": {
 								"command":"echo clear >> /home/ec2-user/.bashrc"
 								}
