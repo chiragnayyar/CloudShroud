@@ -253,7 +253,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				ike_psk=$(echo "$ike_psk" | tr '[:upper:]' '[:lower:]' | xargs)
 
 				# check user answer
-				if [ "ike_psk" == "a" ]
+				if [ "$ike_psk" == "a" ]
 				then 
 				enter_psk_f () {
 					echo ""
@@ -275,22 +275,22 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					}
 					enter_psk_f
 					
-				elif [ "ike_psk" == "b" ]
+				elif [ "$ike_psk" == "b" ]
 				then
 					ike_psk=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 					echo 
-				elif [ "ike_psk" == "c" ]				
+				elif [ "$ike_psk" == "c" ]				
 				then 
 					echo ""
 					sudo cat /etc/cloudshroud/descriptions/ikepsk_description
 					echo ""
 					ike_psk_f
 
-				elif [ "ike_psk" == "e" ]
+				elif [ "$ike_psk" == "e" ]
 				then 
 					ike_dh_f
 					ike_psk_f
-				elif [ "ike_psk" == "f" ]
+				elif [ "$ike_psk" == "f" ]
 				then
 					body_f
 				else
