@@ -12,6 +12,8 @@ cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
 # Check if the cloudshround control box needs to update
+
+
 function progress_f () {
 	spin='-\|/'
 	i=0
@@ -22,7 +24,6 @@ function progress_f () {
 	  sleep .1
 	done
 }
-
 
 function spinner_f () {
 	progress_f &
@@ -38,7 +39,7 @@ function update_local_f () {
 	echo "Grab yourself some coffee!"
 	echo ""
 	echo "Updating CloudShroud control box..."
-	spinner_f "sudo yum upgrade -y >> /dev/null && sudo yum update -y >> /dev/null"
+	spinner_f "$(sudo yum upgrade -y >> /dev/null && sudo yum update -y >> /dev/null)"
 }
 
 
