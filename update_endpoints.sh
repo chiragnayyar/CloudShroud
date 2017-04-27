@@ -10,21 +10,6 @@ cloudshroudb_private=$(aws ec2 describe-instances --region $MYREGION --filter "N
 cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
 cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
-# A progress indicator through spinning cursor
-function progress_spinner_f () {
-	pid=$1 # Process Id of the previous running command
-
-	spin='-\|/'
-
-	i=0
-	while kill -0 $pid 2>/dev/null 
-	do
-	  i=$(( (i+1) %4 ))
-	  printf "\r${spin:$i:1}"
-	  sleep .1
-	done
-}
-
 
 # Check if the cloudshround control box needs to update
 function update_local_f () {
@@ -33,8 +18,10 @@ echo "Please be patient! Updating can take a few minutes to complete especially 
 echo "Grab yourself some coffee!"
 echo ""
 echo "Updating CloudShroud control box..."
-sudo yum update -y & >> /dev/null 
-progress_spinner_f $!
+. spinner &
+progress_pid=$!
+sudo yum update -y >> /dev/null && sudo yum upgrade -y >> /dev/null
+kill $progress_pid && wait $progress_pid 2>/dev/null
  
 
 }
@@ -91,14 +78,29 @@ set output $expect_out(1,string)
 
 if {![info exists output]} {
 	puts "Endpoint is out of date."
+	spawn bash
+	expect -re {\$ $}
+	send ". spinner &\r"
+	expect -re {\$ $}
+	send "export SPINNER=$!\r"
 	set running [update_fun]
+	expect -re {\$ $} 
+	send "kill $SPINNER && wait $SPINNER 2>/dev/null
+	
 
 } elseif {$output == "1.1.7"} {
 	puts "Endpoint is up to date with VYos version $output"
 	
 } else {
 	puts "Endpoint is out of date."
+	spawn bash
+	expect -re {\$ $}
+	send ". spinner &\r"
+	expect -re {\$ $}
+	send "export SPINNER=$!\r"
 	set running [update_fun]
+	expect -re {\$ $} 
+	send "kill $SPINNER && wait $SPINNER 2>/dev/null
 }
 '
 }
@@ -147,11 +149,11 @@ send "exit\r"
 # Function to check that SSH key exists or create if non-existent. Then it proceeds forward to check VYos update status
 function ssh_keys_f {
 	if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
-	then 
-		update_f $cloudshrouda_private $cloudshrouda_public &
-		progress_spinner_f $!
-		update_f $cloudshroudb_private $cloudshroudb_public &
-		progress_spinner_f $!
+	then
+		progress_spinner_f &
+		update_f $cloudshrouda_private $cloudshrouda_public 
+		update_f $cloudshroudb_private $cloudshroudb_public
+		
 		echo ""
 		echo "Done!!"
 	else
@@ -161,9 +163,7 @@ function ssh_keys_f {
 		make_key_perm_f $cloudshrouda_private
 		make_key_perm_f $cloudshroudb_private
 		update_f $cloudshrouda_private $cloudshrouda_public
-		progress_spinner_f $!
 		update_f $cloudshroudb_private $cloudshroudb_public
-		progress_spinner_f $!
 		echo ""
 		echo "Done!!"
 	fi
