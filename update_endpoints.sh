@@ -10,6 +10,21 @@ cloudshroudb_private=$(aws ec2 describe-instances --region $MYREGION --filter "N
 cloudshrouda_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2A" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
 
 cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Name=tag-key,Values=Name" "Name=tag-value,Values=CloudShroudEC2B" --query 'Reservations[].Instances[].NetworkInterfaces[].Association[].PublicIp[]' | grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+# A progress indicator through spinning cursor
+function progress_spinner_f () {
+	pid=$1 # Process Id of the previous running command
+
+	spin='-\|/'
+
+	i=0
+	while kill -0 $pid 2>/dev/null 
+	do
+	  i=$(( (i+1) %4 ))
+	  printf "\r${spin:$i:1}"
+	  sleep .1
+	done
+}
+
 
 # Check if the cloudshround control box needs to update
 function update_local_f () {
@@ -18,7 +33,10 @@ echo "Please be patient! Updating can take a few minutes to complete especially 
 echo "Grab yourself some coffee!"
 echo ""
 echo "Updating CloudShroud control box..."
-sudo yum update -y >> /dev/null && sudo yum upgrade -y >> /dev/null
+sudo yum update -y & >> /dev/null 
+progress_spinner_f $!
+ 
+
 }
 
 # Function to check the OS version of VYos and update if needed.
@@ -130,8 +148,10 @@ send "exit\r"
 function ssh_keys_f {
 	if [ -f "/home/ec2-user/.ssh/healthcheck.key" ]
 	then 
-		update_f $cloudshrouda_private $cloudshrouda_public
-		update_f $cloudshroudb_private $cloudshroudb_public
+		update_f $cloudshrouda_private $cloudshrouda_public &
+		progress_spinner_f $!
+		update_f $cloudshroudb_private $cloudshroudb_public &
+		progress_spinner_f $!
 		echo ""
 		echo "Done!!"
 	else
@@ -141,7 +161,9 @@ function ssh_keys_f {
 		make_key_perm_f $cloudshrouda_private
 		make_key_perm_f $cloudshroudb_private
 		update_f $cloudshrouda_private $cloudshrouda_public
+		progress_spinner_f $!
 		update_f $cloudshroudb_private $cloudshroudb_public
+		progress_spinner_f $!
 		echo ""
 		echo "Done!!"
 	fi
@@ -153,6 +175,7 @@ then
 	ssh_keys_f
 	sed -i '$ d' /etc/cloudshroud/.initial_setup
     echo 1 >> /etc/cloudshroud/.initial_setup
+	. /etc/cloudshroud/body.sh
 else
 
 # Check if SSH agent-forwarding is enabled. This is required for initial CloudShroud setup.
