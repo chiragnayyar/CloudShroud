@@ -205,7 +205,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				ike_dh_f () {
 					 echo ""
-					 echo "What DH group number do you want to use for phase 1? You can type 2, 5, or any number between 14-26, OR you can hit ENTER to use default (DH group 2). "
+					 echo "What Diffie-Hellman (DH) group number do you want to use for phase 1? Choose 2, 5, any number between 14-26, OR you can hit ENTER to use default (DH group 2). You can also choose an option below . "
 					 echo "a) What is this?"
 					 echo "b) Go back to previous question"
 					 echo "c) Go back to main menu"
@@ -390,8 +390,62 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   ipsec_auth_f
 				fi
 			}
+				ipsec_pfs_f () {
+					echo ""
+					echo "Do you want to enable Perfect Forward Secrecy (PFS) for this VPN?"
+					echo "a) Yes (default)"
+					echo "b) No"
+					echo "c) What is this?"
+					echo "d) Go back to previous question"
+					echo "e) Go back to main menu"
+				IFS= read -r -p "> " ipsec_pfs
+				ipsec_pfs=$(echo "$ipsec_pfs" | tr '[:upper:]' '[:lower:]')
+			
+				
+				# check user answer
+				if [ "$ipsec_pfs" == "a" ] || [ "$ipsec_pfs" == "" ]
+				then 
+					ipsec_pfs_answer_f () {
+					echo ""
+					echo "What Diffie-Hellman (DH) group number do you want to use for PFS? Choose 2, 5, any number between 14-26, OR you can hit ENTER to use default (DH group 2)."
+					echo "a) Go back to previous questions"
+					echo "b) Go back to main menu"
+					IFS= read -r -p "> " ipsec_pfs_answer
+					ipsec_pfs_answer=$(echo "$ipsec_pfs_answer" | tr '[:upper:]' '[:lower:]')
+						if [ "$ipsec_pfs_answer" == "" ]
+						then	
+							ipsec_pfs=dh-group2
+						elif [[ "$ipsec_pfs_answer" =~ ^([2|5|1[4-9]|2[0-6])$ ]]
+						then
+							ipsec_pfs=dh-group"$ipsec_pfs_answer"
+						else
+							echo "Please choose a valid option"
+							ipsec_pfs_answer_f
+						fi
+						}
+					ipsec_pfs_answer_f
+				
+				elif [ "$ipsec_pfs" == "b" ] 
+				then 
+					ipsec_pfs
 
-
+				elif [ "$ipsec_pfs" == "c" ]
+				then 
+					echo ""
+					cat /etc/cloudshroud/descriptions/pfs_description
+					ipsec_pfs_f
+				elif [ "$ipsec_pfs" == "d" ]
+				then
+					ipsec_auth_f
+					ipsec_pfs_f
+				elif [ "$ipsec_pfs" == "e" ]
+				then
+					body_f
+				else
+				   echo "Please choose a valid option"
+				   ipsec_pfs_f
+				fi
+			}
 			
 			
 # ike settings
@@ -408,6 +462,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
    ipsec_banner_f
    ipsec_encrypt_f
    ipsec_auth_f
+   ipsec_pfs_f
 				
 				
 				
