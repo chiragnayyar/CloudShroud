@@ -17,20 +17,15 @@ cloudshroudb_public=$(aws ec2 describe-instances --region $MYREGION --filter "Na
 function progress_f () {
 	spin='-\|/'
 	i=0
-	while [ 1 ]
+	sleep 3
+	while  'true'
 	do
 	  i=$(( (i+1) %4 ))
-	  printf "\r${spin:$i:1}"
+	  printf "      \r${spin:$i:1}"
 	  sleep .1
 	done
 }
 
-function spinner_f () {
-	progress_f &
-	progress_pid=$!
-	$1
-	kill $progress_pid && wait $progress_pid 2>/dev/null
- }
 
 
 function update_local_f () {
@@ -39,12 +34,19 @@ function update_local_f () {
 	echo "Grab yourself some coffee!"
 	echo ""
 	echo "Updating CloudShroud control box..."
-	spinner_f "$(sudo yum upgrade -y >> /dev/null && sudo yum update -y >> /dev/null)"
-}
+		progress_f &
+		progress_pid=$!
+		sudo yum update --skip-broken -y >/dev/null && sudo yum upgrade --skip-broken -y >/dev/null
+		kill $progress_pid
+		wait $progress_pid 2>/dev/null
+		
+ }
 
 
 # Function to check the OS version of VYos and update if needed.
 function update_f () {
+		progress_f &
+		progress_pid=$!
 
 expect -c '
 puts ""
@@ -54,9 +56,11 @@ log_user 0
 set timeout 2
 spawn ssh -q -i /home/ec2-user/.ssh/healthcheck.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no vyos@'$1' 
 
+
 proc update_fun {} {
 	puts "updating to latest version..."
 	puts ""
+
 send "\r"
 expect "~$ "
 set timeout 180
@@ -75,9 +79,9 @@ expect ": "
 send "\r"
 
 expect "~$ "
-send "exit\r"
-	
+send "exit\r"	
 	}
+
 
 expect {
 	timeout {puts "connection timed out"; exit}
@@ -103,7 +107,10 @@ if {![info exists output]} {
 } else {
 	puts "Endpoint is out of date."
 	set running [update_fun]
+}
 '
+		kill $progress_pid
+		wait $progress_pid 2>/dev/null
 }
 
 # Function to create SSH keys between CloudShroud controlbox and VPN endpoints.
