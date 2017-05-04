@@ -446,6 +446,87 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   ipsec_pfs_f
 				fi
 			}
+				advanced_options_f () {
+					echo ""
+					echo "(Advanced) Do you want to set custom options, ie. Policy-based vs Route-based, NAT'ing traffic over the tunnel, etc? Hit ENTER to skip."
+					echo "a) Yes"
+					echo "b) Skip this section (Default)"
+					echo "c) What is this?"
+					echo "d) Go back to previous question"
+					echo "e) Go back to main menu"
+				IFS= read -r -p "> " advanced_options
+				advanced_options=$(echo "$advanced_options" | tr '[:upper:]' '[:lower:]')
+				
+				# check user answer
+				if [ "$advanced_options" == "a" ]
+				then
+					routing_type_f () {
+						echo ""
+						echo "Which type of VPN do you want to implement?"
+						echo "a) Policy-based VPN"
+						echo "b) Route-based VPN (Default)"
+						echo "c) What's the difference?"
+						echo "d) Go back to previous question"
+						echo "e) Go back to main menu"
+					IFS= read -r -p "> " routing_type
+					routing_type=$(echo "$routing_type" | tr '[:upper:]' '[:lower:]')
+					
+					# set the routing type 
+					declare -A routing_type_options=( ["a"]="policy-based" ["b"]="route-based" ["''"]="route-based" )
+						# check user answer
+						if [ "$routing_type" == "a" ]
+						then
+							. /etc/cloudshroud/policy-based-template.sh
+							routing_type=${routing_type_options["$routing_type"]}
+						elif [ "$routing_type" == "b" ] || [ "$routing_type" == "" ]
+						then 
+							. /etc/cloudshroud/route-based-template.sh
+							routing_type=${routing_type_options["$routing_type"]}
+						elif [ "$routing_type" == "c" ] 
+						then
+							echo ""
+							cat /etc/cloudshroud/descriptions/routing_type_description
+							routing_type_f
+						elif [ "$routing_type" == "d" ]
+						then
+							advanced_options_f
+							routing_type_f
+						elif [ "$routing_type" == "e" ]
+						then
+							body_f
+						else
+							echo "Please choose a valid option"
+							routing_type_f
+						fi
+					}
+					routing_type_f
+				elif [ "$advanced_options" == "b" ] || [ "$advanced_options" == "" ]
+				then
+					. /etc/cloudshroud/route-based-template.sh
+					routing_type="route-based"
+				elif [ "$advanced_options" == "c" ]
+				then
+					echo ""
+					cat /etc/cloudshroud/descriptions/advanced_options_description
+					advanced_options_f
+				elif [ "$advanced_options" == "d" ]
+				then
+					ipsec_pfs_f
+					advanced_options_f
+				elif [ "$advanced_options" == "e" ]
+				then 
+					body_f
+				else
+					echo "Please choose a valid option"
+					advanced_options_f
+				fi
+				}
+				
+			
+			
+			
+			
+			
 			
 			
 # ike settings
@@ -464,6 +545,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
    ipsec_auth_f
    ipsec_pfs_f
 				
+
+# VPN type
+advanced_options_f
 				
 				
 				
