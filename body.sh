@@ -299,7 +299,6 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				fi
 			}
 			    ipsec_banner_f () {	
-				clear
 				echo ""
 				echo "*****************************************************************************" 
 				echo "                     PHASE 2 (aka. IPSEC) Settings                           " 
@@ -427,7 +426,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				elif [ "$ipsec_pfs" == "b" ] 
 				then 
-					ipsec_pfs
+					ipsec_pfs="no"
 
 				elif [ "$ipsec_pfs" == "c" ]
 				then 
@@ -472,7 +471,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					routing_type=$(echo "$routing_type" | tr '[:upper:]' '[:lower:]')
 					
 					# set the routing type 
-					declare -A routing_type_options=( ["a"]="policy-based" ["b"]="route-based" ["''"]="route-based" )
+					declare -A routing_type_options=( ["a"]="policy-based" ["b"]="route-based" )
 						# check user answer
 						if [ "$routing_type" == "a" ]
 						then
@@ -481,7 +480,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						elif [ "$routing_type" == "b" ] || [ "$routing_type" == "" ]
 						then 
 							. /etc/cloudshroud/route-based-template.sh
-							routing_type=${routing_type_options["$routing_type"]}
+							routing_type=${routing_type_options["b"]}
 						elif [ "$routing_type" == "c" ] 
 						then
 							echo ""
