@@ -261,6 +261,12 @@
 								"owner": "ec2-user",
 								"group": "ec2-user"
 							},
+							"/etc/cloudshroud/nat_questions.sh": {
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/nat_questions.sh",
+								"mode": "000755",
+								"user": "ec2-user",
+								"group": "ec2-user"
+							},
 							"/etc/cloudshroud/body.sh": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/body.sh",
 								"mode": "000755",
