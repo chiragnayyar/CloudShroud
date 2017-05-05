@@ -447,7 +447,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 			}
 				advanced_options_f () {
 					echo ""
-					echo "(Advanced) Do you want to set custom options, ie. Policy-based vs Route-based, NAT'ing traffic over the tunnel, etc? Hit ENTER to skip."
+					echo "(Advanced) Do you want to set custom options (ie. VPN implementation, routing options, NAT)? Hit ENTER to skip section."
 					echo "a) Yes"
 					echo "b) Skip this section (Default)"
 					echo "c) What is this?"
@@ -461,7 +461,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					routing_type_f () {
 						echo ""
-						echo "Which type of VPN do you want to implement?"
+						echo "Which type of VPN do you want to implement? Hit ENTER to skip question"
 						echo "a) Policy-based VPN"
 						echo "b) Route-based VPN (Default)"
 						echo "c) What's the difference?"
@@ -475,12 +475,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						# check user answer
 						if [ "$routing_type" == "a" ]
 						then
-							. /etc/cloudshroud/policy-based-template.sh
-							routing_type=${routing_type_options["$routing_type"]}
+							routing_type="policy-based"
 						elif [ "$routing_type" == "b" ] || [ "$routing_type" == "" ]
 						then 
-							. /etc/cloudshroud/route-based-template.sh
-							routing_type=${routing_type_options["b"]}
+							routing_type="route-based"
 						elif [ "$routing_type" == "c" ] 
 						then
 							echo ""
@@ -498,10 +496,47 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 							routing_type_f
 						fi
 					}
+				
+					nat_questions_f () {
+						echo ""
+						echo "Do you need to NAT IPs over your VPN? Hit ENTER to skip question"
+						echo "a) Yes"
+						echo "b) No (Default)"
+						echo "c) What is this?"
+						echo "d) Go back to previous question"
+						echo "e) Go back to main menu"
+					IFS= read -r -p "> " nat_questions
+					nat_questions=$(echo "$nat_questions" | tr '[:upper:]' '[:lower:]')
+					
+						# check user answer
+						if [ "$nat_questions" == "a" ]
+						then
+							. /etc/cloudshroud/nat_questions.sh
+						elif [ "$nat_questions" == "b" ] || [ "$nat_questions" == "" ]
+						then 
+							nat_questions="no"
+						elif [ "$nat_questions" == "c" ] 
+						then
+							echo ""
+							cat /etc/cloudshroud/descriptions/nat_questions_description
+							nat_questions_f
+						elif [ "$nat_questions" == "d" ]
+						then
+							routing_type_f
+							nat_questions_f
+						elif [ "$nat_questions" == "e" ]
+						then
+							body_f
+						else
+							echo "Please choose a valid option"
+							nat_questions_f
+						fi
+					}
+					
 					routing_type_f
+					nat_questions_f
 				elif [ "$advanced_options" == "b" ] || [ "$advanced_options" == "" ]
 				then
-					. /etc/cloudshroud/route-based-template.sh
 					routing_type="route-based"
 				elif [ "$advanced_options" == "c" ]
 				then
