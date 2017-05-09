@@ -30,8 +30,11 @@ function progress_f () {
 
 function update_local_f () {
 	echo ""
-	echo "Please be patient! Updating can take a few minutes to complete especially if it has been awhile since last update."
-	echo "Grab yourself some coffee!"
+	echo "-----------------------------------------------------------------------------"
+	echo "Please be patient! Updating can take a few minutes to complete especially "
+	echo "if it has been awhile since last update, or if this is the first time you've"
+	echo "run it. Grab yourself some coffee!"
+	echo "-----------------------------------------------------------------------------"
 	echo ""
 	echo "Updating CloudShroud control box..."
 		progress_f &
@@ -206,7 +209,12 @@ else
 					. /etc/cloudshroud/body.sh
 				else	
 					echo ""
-					echo "You do not have SSH agent forwarding enabled. Please enable this feature on your Windows or Mac client machine and add your EC2's private key to the forwarder prior to running CloudShroud updates. (TIP: Google 'setting up ssh agent forwarding')" 
+					echo "-----------------------------------------------------------------------------"
+					echo "You do not have SSH agent forwarding enabled. Please enable this feature on"
+					echo "your Windows or Mac client machine and add your EC2's private key to the"
+					echo "forwarder prior to running CloudShroud updates. (TIP: Google 'setting up ssh"
+					echo "agent forwarding')" 
+					echo "-----------------------------------------------------------------------------"
 					echo ""
 					. /etc/cloudshroud/body.sh
 				fi

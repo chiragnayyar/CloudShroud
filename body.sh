@@ -7,7 +7,9 @@ echo "**************************************************************************
 echo ""
 body_f () {
 	echo ""
+	echo "-----------------------------------------------------------------------------"
 	echo "Let's get started! What would you like to do?"
+	echo "-----------------------------------------------------------------------------"
 	echo "a) Create a new VPN connection to a partner"
 	echo "b) Modify an existing VPN connection"
 	echo "c) Delete an existing VPN connection"
@@ -25,7 +27,11 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 		if [ "$user_input" == "a" ]
 				then new_vpn_name_f () {
 					echo ""
-					echo "Give your new VPN a meaningful name that will help you easily identify it (Max32 characters which include lower/upper case A-Z and/or digits). You can also type the word \"main\" to go back to the main menu."
+					echo "-----------------------------------------------------------------------------"
+					echo "Give your new VPN a meaningful name that will help you easily identify it"
+					echo "(Max length is 32 characters which include lower/upper case A-Z and/or "
+					echo "digits). You can also type the word \"main\" to go back to the main menu."
+					echo "-----------------------------------------------------------------------------"
 					IFS= read -r -p "> " new_vpn_name
 					new_vpn_name=$(echo "$new_vpn_name" | xargs)
 					
@@ -36,7 +42,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					then 
 						body_f
 					else
-						echo "Invalid name: Please ensure the name is 1-32 characters, and is only using lower/upper case A-Z and/or digits"
+						echo "Invalid name: Please ensure the name is 1-32 characters,"
+						echo "and is only using lower/upper case A-Z and/or digits"
 						new_vpn_name_f
 					fi
 		
@@ -51,7 +58,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 
 				pub_peer_ip_f () {
 					echo ""
-					echo "What is the public IP of the peer that you want to establish a VPN with (in the form x.x.x.x)? You can also type \"main\" to go back to the main menu"
+					echo "-----------------------------------------------------------------------------"
+					echo "What is the public IP of the peer that you want to establish a VPN with ?"
+					echo "You can also type \"main\" to go back to the main menu"
+					echo "-----------------------------------------------------------------------------"
 				IFS= read -r -p "> " peer_pub_ip
 				peer_pub_ip=$(echo "$peer_pub_ip" | xargs)
 
@@ -70,7 +80,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 
 				ike_version_f () {
 					echo ""
+					echo "-----------------------------------------------------------------------------"
 					echo "What version of IKE do you want to use? Hit ENTER to use the default"
+					echo "-----------------------------------------------------------------------------"
 					echo "a) IKEv1 (default)"
 					echo "b) IKEv2"
 					echo "c) What is this?"
@@ -116,7 +128,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 
 				ike_encrypt_f () {
 					echo ""
-					echo "What encryption strength do you want to use for phase 1? Hit ENTER to use the default"
+					echo "-----------------------------------------------------------------------------"
+					echo "What encryption strength do you want to use for phase 1? Hit ENTER to use the"
+					echo "default"
+					echo "-----------------------------------------------------------------------------"
 					echo "a) AES128 (default)"
 					echo "b) AES256"
 					echo "c) 3DES"
@@ -161,7 +176,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				ike_auth_f () {
 				    echo ""
+					echo "-----------------------------------------------------------------------------"
 					echo "What type of authentication do you want to use for phase 1?"
+					echo "-----------------------------------------------------------------------------"
 					echo "a) SHA1 (default)"
 					echo "b) SHA256"
 					echo "c) MD5"
@@ -205,7 +222,11 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				ike_dh_f () {
 					 echo ""
-					 echo "What Diffie-Hellman (DH) group number do you want to use for phase 1? Choose 2, 5, any number between 14-26, OR you can hit ENTER to use default (DH group 2). You can also choose an option below . "
+					 echo "-----------------------------------------------------------------------------"
+					 echo "What Diffie-Hellman (DH) group number do you want to use for phase 1? "
+					 echo "Choose 2, 5, any number between 14-26, OR you can hit ENTER to use default" 
+					 echo "You can also choose an option below . "
+					 echo "-----------------------------------------------------------------------------"
 					 echo "a) What is this?"
 					 echo "b) Go back to previous question"
 					 echo "c) Go back to main menu"
@@ -243,7 +264,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 				ike_psk_f () {
 				   echo ""
-				   echo "You will need to specify a Preshared Key for this connection (10-32 alphanumberic characters). Please choose one of the following options"
+				   echo "-----------------------------------------------------------------------------"
+				   echo "What's the Preshared Key for this connection (10-32 alphanumeric characters)." 
+				   echo "Please choose one of the following options"
+				   echo "-----------------------------------------------------------------------------"
 				   echo "a) I already have a PSK that I want use"
 				   echo "b) I need to generate a new PSK"
 				   echo "c) What is this?"
@@ -257,13 +281,15 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then 
 				enter_psk_f () {
 					echo ""
-					echo "Please enter the preshared Key, or type \"goback\" to go back to the previous menu options"
+					echo "-----------------------------------------------------------------------------"
+					echo "Please enter the preshared Key, or type \"goback\" to go back to the previous"
+					echo "menu options"
+					echo "-----------------------------------------------------------------------------"
 					IFS= read -r -p "> " ike_enter
 					ike_enter=$(echo "$ike_enter" | xargs)
 					  if [ "$(echo $ike_enter | tr '[:upper:]' '[:lower:]')" == "goback" ]
 					   then 
 					      ike_psk_f
-						  enter_psk_f
 					   elif [[ "$ike_enter" =~ ([a-zA-Z0-9]{10,32}) ]]
 					   then
 						  echo
@@ -306,7 +332,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 			}
 				ipsec_encrypt_f () {
 					echo ""
-					echo "What encryption strength do you want to use for phase 2? Hit ENTER to use the default"
+					echo "-----------------------------------------------------------------------------"
+					echo "What encryption strength do you want to use for phase 2? Hit ENTER to use the"
+					echo "default"
+					echo "-----------------------------------------------------------------------------"
 					echo "a) AES128 (default)"
 					echo "b) AES256"
 					echo "c) 3DES"
@@ -349,7 +378,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 			}
 				ipsec_auth_f () {
 				    echo ""
+					echo "-----------------------------------------------------------------------------"
 					echo "What type of authentication do you want to use for phase 2?"
+					echo "-----------------------------------------------------------------------------"
 					echo "a) SHA1 (default)"
 					echo "b) SHA256"
 					echo "c) MD5"
@@ -391,7 +422,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 			}
 				ipsec_pfs_f () {
 					echo ""
+					echo "-----------------------------------------------------------------------------"
 					echo "Do you want to enable Perfect Forward Secrecy (PFS) for this VPN?"
+					echo "-----------------------------------------------------------------------------"
 					echo "a) Yes (default)"
 					echo "b) No"
 					echo "c) What is this?"
@@ -406,12 +439,21 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then 
 					ipsec_pfs_answer_f () {
 					echo ""
-					echo "What Diffie-Hellman (DH) group number do you want to use for PFS? Choose 2, 5, any number between 14-26, OR you can hit ENTER to use default (DH group 2)."
-					echo "a) Go back to previous questions"
+					echo "-----------------------------------------------------------------------------"
+					echo "What Diffie-Hellman (DH) group number do you want to use for PFS? Choose 2, 5,"
+					echo "any number between 14-26, OR you can hit ENTER to use default (DH group 2)."
+					echo "-----------------------------------------------------------------------------"
+					echo "a) Go back to previous question"
 					echo "b) Go back to main menu"
 					IFS= read -r -p "> " ipsec_pfs_answer
 					ipsec_pfs_answer=$(echo "$ipsec_pfs_answer" | tr '[:upper:]' '[:lower:]')
-						if [ "$ipsec_pfs_answer" == "" ]
+						if [ "$ipsec_pfs_answer" == "a" ]
+						then 
+							ipsec_pfs_f
+						elif [ "$ipsec_pfs_answer" == "b" ]
+						then 
+							body_f
+						elif [ "$ipsec_pfs_answer" == "" ]
 						then	
 							ipsec_pfs=dh-group2
 						elif [[ "$ipsec_pfs_answer" =~ ^([2|5|1[4-9]|2[0-6])$ ]]
@@ -447,7 +489,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 			}
 				advanced_options_f () {
 					echo ""
-					echo "(Advanced) Do you want to set custom options (ie. VPN implementation, routing options, NAT)? Hit ENTER to skip section."
+					echo "-----------------------------------------------------------------------------"
+					echo "(Advanced) Do you want to set custom options (ie. VPN implementation, routing"
+					echo "options, NAT)? Hit ENTER to skip this section."
+					echo "-----------------------------------------------------------------------------"
 					echo "a) Yes"
 					echo "b) Skip this section (Default)"
 					echo "c) What is this?"
@@ -461,7 +506,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					routing_type_f () {
 						echo ""
+						echo "-----------------------------------------------------------------------------"
 						echo "Which type of VPN do you want to implement? Hit ENTER to skip question"
+						echo "-----------------------------------------------------------------------------"
 						echo "a) Policy-based VPN"
 						echo "b) Route-based VPN (Default)"
 						echo "c) What's the difference?"
@@ -499,7 +546,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				
 					nat_questions_f () {
 						echo ""
+						echo "-----------------------------------------------------------------------------"
 						echo "Do you need to NAT IPs over your VPN? Hit ENTER to skip question"
+						echo "-----------------------------------------------------------------------------"
 						echo "a) Yes"
 						echo "b) No (Default)"
 						echo "c) What is this?"
@@ -555,12 +604,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					advanced_options_f
 				fi
 				}
-				
-			
-			
-			
-			
-			
+							
 			
 			
 # ike settings
@@ -610,7 +654,8 @@ then
 	bash
 	
 else
-	echo "You must choose 'e) Check for updates' to complete initial setup of CloudShroud before you can do anything else"
+	echo "You must choose 'e) Check for updates' to complete initial setup of"
+	echo "CloudShroud before you can do anything else"
 	body_f
 fi
 }
