@@ -85,9 +85,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "-----------------------------------------------------------------------------"
 					echo "a) IKEv1 (default)"
 					echo "b) IKEv2"
-					echo "c) What is this?"
-					echo "d) Go back to previous question"
-					echo "e) Go back to main menu"
+					echo "c) Go back to previous question"
+					echo "d) Go back to main menu"
 				IFS= read -r -p "> " ike_version
 				ike_version=$(echo "$ike_version" | tr '[:upper:]' '[:lower:]')
 
@@ -105,18 +104,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo 
 					ike_version=ikev1
 
-				elif [ "$ike_version" == "c" ]
-				then
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ikeversion_description 
-					ike_version_f
-
-				elif [ "$ike_version" == "d" ] 
+				elif [ "$ike_version" == "c" ] 
 				then 
 					pub_peer_ip_f
 					ike_version_f
 
-				elif [ "$ike_version" == "e" ]
+				elif [ "$ike_version" == "d" ]
 				then 
 					body_f
 				else
@@ -135,9 +128,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "a) AES128 (default)"
 					echo "b) AES256"
 					echo "c) 3DES"
-					echo "d) What is this?"
-					echo "e) Go back to previous question"
-				    echo "f) Go back to main menu"
+					echo "d) Go back to previous question"
+				    echo "e) Go back to main menu"
 				IFS= read -r -p "> " ike_encrypt
 				ike_encrypt=$(echo "$ike_encrypt" | tr '[:upper:]' '[:lower:]')
 				
@@ -153,18 +145,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					echo
 					ike_encrypt=aes128
-				elif [ "$ike_encrypt" == "d" ]
-				then
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ikeencrypt_description
-					ike_encrypt_f
-
-				elif [ "$ike_encrypt" == "e" ] 
+				elif [ "$ike_encrypt" == "d" ] 
 				then 
 					ike_version_f
 					ike_encrypt_f
 
-				elif [ "$ike_encrypt" == "f" ]
+				elif [ "$ike_encrypt" == "e" ]
 				then 
 					body_f
 				else
@@ -182,9 +168,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "a) SHA1 (default)"
 					echo "b) SHA256"
 					echo "c) MD5"
-					echo "d) What is this?"
-					echo "e) Go back to previous question"
-					echo "f) Go back to main menu"
+					echo "d) Go back to previous question"
+					echo "e) Go back to main menu"
 				IFS= read -r -p "> " ike_auth
 				ike_auth=$(echo "$ike_auth" | tr '[:upper:]' '[:lower:]')
 				
@@ -200,17 +185,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					echo 
 					ike_auth=sha1
-				elif [ "$ike_auth" == "d" ] 
-				then 
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ikeauth_description
-					ike_auth_f
 
-				elif [ "$ike_auth" == "e" ]
+				elif [ "$ike_auth" == "d" ]
 				then 
 					ike_encrypt_f
 					ike_auth_f
-				elif [ "$ike_auth" == "f" ]
+				elif [ "$ike_auth" == "e" ]
 				then
 					body_f
 				else
@@ -227,7 +207,6 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					 echo "Choose 2, 5, any number between 14-26, OR you can hit ENTER to use default" 
 					 echo "You can also choose an option below . "
 					 echo "-----------------------------------------------------------------------------"
-					 echo "a) What is this?"
 					 echo "b) Go back to previous question"
 					 echo "c) Go back to main menu"
  				IFS= read -r -p "> " ike_dh
@@ -243,11 +222,6 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					echo 
 					ike_dh="2"
-				elif [ "$ike_dh" == "a" ] 
-				then 
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ikedh_description
-					ike_dh_f
 
 				elif [ "$ike_dh" == "b" ]
 				then 
@@ -270,9 +244,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				   echo "-----------------------------------------------------------------------------"
 				   echo "a) I already have a PSK that I want use"
 				   echo "b) I need to generate a new PSK"
-				   echo "c) What is this?"
-				   echo "e) Go back to previous question"
-				   echo "f) Go back to main menu"
+				   echo "c) Go back to previous question"
+				   echo "d) Go back to main menu"
 				IFS= read -r -p "> " ike_psk
 				ike_psk=$(echo "$ike_psk" | tr '[:upper:]' '[:lower:]' | xargs)
 
@@ -305,18 +278,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					ike_psk=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 					echo 
-				elif [ "$ike_psk" == "c" ]				
-				then 
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ikepsk_description
-					echo ""
-					ike_psk_f
 
-				elif [ "$ike_psk" == "e" ]
+				elif [ "$ike_psk" == "c" ]
 				then 
 					ike_dh_f
 					ike_psk_f
-				elif [ "$ike_psk" == "f" ]
+				elif [ "$ike_psk" == "d" ]
 				then
 					body_f
 				else
@@ -339,9 +306,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "a) AES128 (default)"
 					echo "b) AES256"
 					echo "c) 3DES"
-					echo "d) What is this?"
-					echo "e) Go back to previous question"
-				    echo "f) Go back to main menu"
+					echo "d) Go back to previous question"
+				    echo "e) Go back to main menu"
 				IFS= read -r -p "> " ipsec_encrypt
 				ipsec_encrypt=$(echo "$ipsec_encrypt" | tr '[:upper:]' '[:lower:]')
 				
@@ -357,18 +323,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					echo 
 					ipsec_encrypt=aes128
-				elif [ "$ipsec_encrypt" == "d" ]
-				then
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ipsecencrypt_description
-					ipsec_encrypt_f
-
-				elif [ "$ipsec_encrypt" == "e" ] 
+				elif [ "$ipsec_encrypt" == "d" ] 
 				then 
 					ike_psk_f
 					ipsec_encrypt_f
 
-				elif [ "$ipsec_encrypt" == "f" ]
+				elif [ "$ipsec_encrypt" == "e" ]
 				then 
 					body_f
 				else
@@ -384,9 +344,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "a) SHA1 (default)"
 					echo "b) SHA256"
 					echo "c) MD5"
-					echo "d) What is this?"
-					echo "e) Go back to previous question"
-					echo "f) Go back to main menu"
+					echo "d) Go back to previous question"
+					echo "e) Go back to main menu"
 				IFS= read -r -p "> " ipsec_auth
 				ipsec_auth=$(echo "$ipsec_auth" | tr '[:upper:]' '[:lower:]')
 				
@@ -402,17 +361,12 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				then
 					echo 
 					ipsec_auth=sha1
-				elif [ "$ipsec_auth" == "d" ] 
-				then 
-					echo ""
-					sudo cat /etc/cloudshroud/descriptions/ipsecauth_description
-					ipsec_auth_f
 
-				elif [ "$ipsec_auth" == "e" ]
+				elif [ "$ipsec_auth" == "d" ]
 				then 
 					ipsec_encrypt_f
 					ipsec_auth_f
-				elif [ "$ipsec_auth" == "f" ]
+				elif [ "$ipsec_auth" == "e" ]
 				then
 					body_f
 				else
@@ -427,9 +381,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "-----------------------------------------------------------------------------"
 					echo "a) Yes (default)"
 					echo "b) No"
-					echo "c) What is this?"
-					echo "d) Go back to previous question"
-					echo "e) Go back to main menu"
+					echo "c) Go back to previous question"
+					echo "d) Go back to main menu"
 				IFS= read -r -p "> " ipsec_pfs
 				ipsec_pfs=$(echo "$ipsec_pfs" | tr '[:upper:]' '[:lower:]')
 			
@@ -471,15 +424,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					ipsec_pfs="no"
 
 				elif [ "$ipsec_pfs" == "c" ]
-				then 
-					echo ""
-					cat /etc/cloudshroud/descriptions/pfs_description
-					ipsec_pfs_f
-				elif [ "$ipsec_pfs" == "d" ]
 				then
 					ipsec_auth_f
 					ipsec_pfs_f
-				elif [ "$ipsec_pfs" == "e" ]
+				elif [ "$ipsec_pfs" == "d" ]
 				then
 					body_f
 				else
@@ -495,9 +443,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					echo "-----------------------------------------------------------------------------"
 					echo "a) Yes"
 					echo "b) Skip this section (Default)"
-					echo "c) What is this?"
-					echo "d) Go back to previous question"
-					echo "e) Go back to main menu"
+					echo "c) Go back to previous question"
+					echo "d) Go back to main menu"
 				IFS= read -r -p "> " advanced_options
 				advanced_options=$(echo "$advanced_options" | tr '[:upper:]' '[:lower:]')
 				
@@ -511,9 +458,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						echo "-----------------------------------------------------------------------------"
 						echo "a) Policy-based VPN"
 						echo "b) Route-based VPN (Default)"
-						echo "c) What's the difference?"
-						echo "d) Go back to previous question"
-						echo "e) Go back to main menu"
+						echo "c) Go back to previous question"
+						echo "d) Go back to main menu"
 					IFS= read -r -p "> " routing_type
 					routing_type=$(echo "$routing_type" | tr '[:upper:]' '[:lower:]')
 					
@@ -526,16 +472,10 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						elif [ "$routing_type" == "b" ] || [ "$routing_type" == "" ]
 						then 
 							routing_type="route-based"
-						elif [ "$routing_type" == "c" ] 
-						then
-							echo ""
-							cat /etc/cloudshroud/descriptions/routing_type_description
-							routing_type_f
-						elif [ "$routing_type" == "d" ]
+						elif [ "$routing_type" == "c" ]
 						then
 							advanced_options_f
-							routing_type_f
-						elif [ "$routing_type" == "e" ]
+						elif [ "$routing_type" == "d" ]
 						then
 							body_f
 						else
@@ -551,9 +491,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						echo "-----------------------------------------------------------------------------"
 						echo "a) Yes"
 						echo "b) No (Default)"
-						echo "c) What is this?"
-						echo "d) Go back to previous question"
-						echo "e) Go back to main menu"
+						echo "c) Go back to previous question"
+						echo "d) Go back to main menu"
 					IFS= read -r -p "> " nat_questions
 					nat_questions=$(echo "$nat_questions" | tr '[:upper:]' '[:lower:]')
 					
@@ -564,16 +503,11 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						elif [ "$nat_questions" == "b" ] || [ "$nat_questions" == "" ]
 						then 
 							nat_questions="no"
-						elif [ "$nat_questions" == "c" ] 
-						then
-							echo ""
-							cat /etc/cloudshroud/descriptions/nat_questions_description
-							nat_questions_f
-						elif [ "$nat_questions" == "d" ]
+						elif [ "$nat_questions" == "c" ]
 						then
 							routing_type_f
 							nat_questions_f
-						elif [ "$nat_questions" == "e" ]
+						elif [ "$nat_questions" == "d" ]
 						then
 							body_f
 						else
@@ -589,14 +523,9 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 					routing_type="route-based"
 				elif [ "$advanced_options" == "c" ]
 				then
-					echo ""
-					cat /etc/cloudshroud/descriptions/advanced_options_description
-					advanced_options_f
-				elif [ "$advanced_options" == "d" ]
-				then
 					ipsec_pfs_f
 					advanced_options_f
-				elif [ "$advanced_options" == "e" ]
+				elif [ "$advanced_options" == "d" ]
 				then 
 					body_f
 				else
