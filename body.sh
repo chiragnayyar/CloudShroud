@@ -409,7 +409,7 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 						elif [ "$ipsec_pfs_answer" == "" ]
 						then	
 							ipsec_pfs=dh-group2
-						elif [[ "$ipsec_pfs_answer" =~ ^([2|5|1[4-9]|2[0-6])$ ]]
+						elif [[ "$ipsec_pfs_answer" =~ ^(2|5|1[4-9]|2[0-6])$ ]]
 						then
 							ipsec_pfs=dh-group"$ipsec_pfs_answer"
 						else
@@ -438,8 +438,8 @@ if [ "$(cat /etc/cloudshroud/.initial_setup)" == "1" ]
 				advanced_options_f () {
 					echo ""
 					echo "-----------------------------------------------------------------------------"
-					echo "(Advanced) Do you want to set custom options (ie. VPN implementation, routing"
-					echo "options, NAT)? Hit ENTER to skip this section."
+					echo "(Advanced) Do you want to set custom options (ie. VPN type, routing, options,"
+					echo " NAT)? Hit ENTER to skip this section."
 					echo "-----------------------------------------------------------------------------"
 					echo "a) Yes"
 					echo "b) Skip this section (Default)"

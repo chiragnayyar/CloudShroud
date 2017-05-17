@@ -32,15 +32,14 @@ nat_host_or_net=$(echo "$nat_host_or_net" | tr '[:upper:]' '[:lower:]')
 					then
 						clear
 						echo "It looks like you are trying to NAT a network block instead of host. Please"
-						echo "choose the a host IP (in format x.x.x.x)"
+						echo "choose a host IP (in format x.x.x.x)"
 						nat_host_or_net_f
 					else
 					    local_actual_host=$local_actual_host
 					fi
 				else
 					clear
-					echo "Please choose a valid local host IP in your VPC that you wish to NAT over the"
-					echo "VPN"
+					echo "Please choose a valid local host IP in your VPC that you wish to NAT"
 					local_actual_host_f
 				fi
 				}

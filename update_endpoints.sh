@@ -211,9 +211,10 @@ else
 					echo ""
 					echo "-----------------------------------------------------------------------------"
 					echo "You do not have SSH agent forwarding enabled. Please enable this feature on"
-					echo "your Windows or Mac client machine and add your EC2's private key to the"
-					echo "forwarder prior to running CloudShroud updates. (TIP: Google 'setting up ssh"
-					echo "agent forwarding')" 
+					echo "your Windows or Mac client, add your EC2 private key to the agent, and then"
+					echo "SSH back into this controlbox to resume initial configuration of CloudShroud."
+					echo "Note that you only need to do this for first time use."
+					echo "(TIP: Google 'setting up ssh agent forwarding')" 
 					echo "-----------------------------------------------------------------------------"
 					echo ""
 					. /etc/cloudshroud/body.sh
