@@ -11,5 +11,6 @@ features.
 - Other parameters which are normally manually configured, are automatically handled (ie. phase1 and phase2 lifetimes)
 
 # Setup Instructions
-1) Log into your AWS management console, and go to the "CloudFormation" service page
-2) Create a new 
+1) Copy the 'CloudShroud_template.json' template above
+2) Log into your AWS management console, and go to the "CloudFormation" service page
+3) 
