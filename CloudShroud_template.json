@@ -37,7 +37,7 @@
 				"PFS": {"default":"Perfect Forward Secrecy"},
 				"VPNName": {"default":"VPN Name"},
 				"LinkLocal": {"default": "Local VTI IP"},
-				"LinkRemote": {"default": "Remote VTI IP"}
+				"LinkRemote": {"default": "Remote VTI IP"},
 				"TerminatePro": {"default":"EC2 Termination Protection"}
             }
 
@@ -62,11 +62,10 @@
 		},
 		"TerminatePro": {
 			"Description": "It's advisable to leave this to 'True'. If you have this feature enabled it will help prevent from accidently terminating your Strongswan server without further disabling the protection.",
-			"Type":"Boolean",
+			"Type":"String",
 			"Default": "True",
+			"AllowedValues": ["True","False"]
 			},
-			
-		
 		"SSHSourceIP": {
 			"Description": "The public IP or IP range of your home or office that you want to allow SSH from.",
 			"Type": "String",
@@ -176,7 +175,7 @@
 				"Strongswan": "ami-cf47518a"
 			},
 			"us-west-2": {
-				"Strongswan": "ami-8a9d88f3"
+				"Strongswan": "ami-164a5c6f"
 			},
 			"eu-west-1": {
 				"Strongswan": "ami-5e77c229"
@@ -326,10 +325,10 @@
 								}
 								},
 							"startscript": {
-								"command": "bash /etc/strongswan/setup.sh",
+								"command": "bash /etc/strongswan/setup.sh"
 							},
 							"startstrongswan": {
-								"command": "strongswan restart",
+								"command": "strongswan restart"
 							}
 							
 						}
@@ -355,7 +354,7 @@
 							]]
 					}
 				},
-				"DisableApiTermination": "false",
+				"DisableApiTermination": {"Ref":"TerminatePro"},
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
