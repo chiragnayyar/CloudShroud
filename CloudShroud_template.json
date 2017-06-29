@@ -238,7 +238,11 @@
 								
 								},
 							"/etc/init.d/cloudshroud-cleanup": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cloudshroud-cleanup"
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cloudshroud-cleanup",
+								"mode": "000755",
+								"user": "root",
+								"group": "root"
+								}
 								},
 						"commands": {
 							"setvpc": {
@@ -336,8 +340,10 @@
 							},
 							"startstrongswan": {
 								"command": "strongswan restart"
+							},
+							"sttcheckconfig": {
+								"command": "chkconfig --add cloudshroud-cleanup"
 							}
-							
 						}
 					}
 			
