@@ -548,6 +548,74 @@
 				}
 			}
 		}
+	},
+	"Conditions": {
+		"RouteBased" : {
+				"Fn::Equals": [
+					{"Ref": "RouteType"},
+					"route-based"]
+			},
+		"PFSenabled" : {
+				"Fn::Equals": [
+					{"Ref": "PFS"},
+					"Skip"]
+			}
+	},
+	"Outputs": {
+		"Strongswan" : {
+			"Description": "The public IP of your Strongswan VPN endpoint. Give this to your remote peer to configure their side",
+			"Value" : {"Fn::GetAtt" : ["StrongswanEC2","PublicIp"]
+			},
+		"AWS Tunnel VTI IP" : {
+			"Description": "The inside tunnel VTI IP on the AWS side of this VPN",
+			"Value" : {"Ref":"LinkLocal"},
+			"Condition": "RouteBased"
+			},
+		"Remote Tunnel VTI IP": {
+			"Description": "The inside tunnel VTI IP for the remote side of this VPN",
+			"Value": {"Ref":"LinkRemote"},
+			"Condition": "RouteBased"
+			},
+		"AWS VPN endpoint role": {
+			"Description" : "There is an initiator and a responder in VPN negotiations. The remote side is always the initiator."
+			"Value": "Strict Responder"
+			},
+		"Preshared Key": {
+			"Description" : "Hidden here for security. This password needs to be agreed upon by you and your remote peer."
+			"Value": "*******"
+			},
+		"Phase 1 Encryption" {
+			"Description" : "Any IKEv1 or IKEv2 cipher is automatically detected and supported",
+			"Value": "Any"
+			},
+		"Phase 2 Encryption" {
+			"Description": "The phase 2 (IPSEC) encryption that will be used",
+			"Value": {"Ref":"Phase2Enc"},
+			"Condition": {"Fn::If": ["PFSenabled","False","True"]}
+		},
+		"Phase 2 Integrity/Authentication" {
+			"Description": "The phase 2 (IPSEC) Integrity (aka. Authentication or Hashing) that will be used",
+			"Value": {"Ref":"Phase2Hash"},
+			"Condition": {"Fn::If": ["PFSenabled","False","True"]}
+		},
+		"PFS DH Group" {
+			"Description": "The Diffie-Hellman group that will be used for Perfect Forward Secrecy (phase 2)",
+			"Value": {"Ref": "PFS"},
+			"Condition": {"Fn::If": ["PFSenabled","False","True"]}
+		},
+		"Phase 2 Encryption" {
+			"Description": "Any phase 2 encryption may be used for IKEv2 as well as IKEv1 (as long as PFS is not enabled with IKEv1)",
+			"Value": "Any",
+			"Condition": {"Fn::If": ["PFSenabled","True","False"]}
 
-	}
+		},
+		"Phase 2 Integrity/Authentication" {
+			"Description": "Any phase 2 integrity (aka. authentication or hashing) may be used for IKEv2 as well as IKEv1 (as long as PFS is not enabled with IKEv1)",
+			"Value": "Any",
+			"Condition": {"Fn::If": ["PFSenabled","True","False"]}
+		}
+		
+		
+	}	
+			
 }
