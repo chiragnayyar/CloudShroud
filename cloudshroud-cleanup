@@ -121,12 +121,12 @@ case "$1" in
 	start)
 		start
 		touch /var/lock/subsys/cloudshroud-cleanup
-		RETVAL=0
+		RETVAL=$?
 		;;
 	stop)
 		stop
 		rm -f /var/lock/subsys/cloudshroud-cleanup
-		RETVAL=0
+		RETVAL=$?
 		;;
 	*)
 	echo "Usage: $0 {start|stop}"
