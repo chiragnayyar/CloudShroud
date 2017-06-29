@@ -215,7 +215,7 @@
 		},
 		"StrongswanEC2": {
 			"Type": "AWS::EC2::Instance",
-			"DependsOn":"StrongswanSg",
+			"DependsOn":["StrongswanIAMPolicy","StrongswanIAMRole","StrongswanInstanceProfile"],
 			"Metadata": {
 				"AWS::CloudFormation::Init": {
 					"configSets": {
@@ -224,7 +224,7 @@
 
 					"Install": {
 						"files": {
-							"/etc/strongswan/setup.sh": {
+							"/etc/strongswan/setup": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup",
 								"mode": "000755",
 								"user": "root",
@@ -335,14 +335,23 @@
 									"LR": {"Ref": "LinkRemote"}
 								}
 								},
+							"setselfid": {
+								"command": "echo MY_ID=\"$ID\" >> /etc/strongswan/variables",
+								"env": {
+									"ID": {"Ref": "StrongswanEC2"}
+								}
+								},
 							"startscript": {
-								"command": "bash /etc/strongswan/setup.sh"
+								"command": "bash /etc/strongswan/setup"
 							},
 							"startstrongswan": {
 								"command": "strongswan restart"
 							},
 							"sttcheckconfig": {
 								"command": "chkconfig --add cloudshroud-cleanup"
+							},
+							"touchfile": {
+								"command": "touch /var/lock/subsys/cloudshroud-cleanup"
 							}
 						}
 					}
@@ -461,6 +470,7 @@
 		},
 
 		"StrongswanSg": {
+			"DependsOn": ["StrongswanIAMPolicy","StrongswanIAMRole","StrongswanInstanceProfile"],
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
 				"GroupDescription": "Security group used by Strongswan EC2",
