@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description":"This Cloudformation template will launch a Strongswan EC2 to act as a VPN endpoint to your VPC.",
+	"Description":"CloudShroud is a helper CF template which will launch and automate the setup of a Strongswan EC2 to act as a VPN endpoint to your VPC.",
 	"Metadata": {
 		"AWS::CloudFormation::Interface": {
 			"ParameterGroups": [{
@@ -225,12 +225,17 @@
 					"Install": {
 						"files": {
 							"/etc/strongswan/setup.sh": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/setup.sh",
-								"mode": "000755"
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup.sh",
+								"mode": "000755",
+								"user": "root",
+								"group": "root"
 								},
 							"/etc/strongswan/aws.updown": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/aws.updown",
-								"mode": "000755"
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/aws.updown",
+								"mode": "000755",
+								"user": "root",
+								"group": "root"
+								
 								}
 								},
 						"commands": {
@@ -410,7 +415,9 @@
 							"ec2:DescribeSecurityGroups",
 							"ec2:DescribeRouteTables",
 							"ec2:DescribeVpcs",
-							"ec2:CreateRoute"
+							"ec2:CreateRoute",
+							"ec2:RevokeSecurityGroupIngress",
+							"ec2:DeleteRoute"
 						],
 						"Resource": "*"
 					}]
