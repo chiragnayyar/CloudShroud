@@ -335,12 +335,6 @@
 									"LR": {"Ref": "LinkRemote"}
 								}
 								},
-							"setselfid": {
-								"command": "echo MY_ID=\"$ID\" >> /etc/strongswan/variables",
-								"env": {
-									"ID": {"Ref": "StrongswanEC2"}
-								}
-								},
 							"startscript": {
 								"command": "bash /etc/strongswan/setup"
 							},
@@ -470,7 +464,6 @@
 		},
 
 		"StrongswanSg": {
-			"DependsOn": ["StrongswanIAMPolicy","StrongswanIAMRole","StrongswanInstanceProfile"],
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
 				"GroupDescription": "Security group used by Strongswan EC2",
