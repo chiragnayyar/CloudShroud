@@ -7,8 +7,8 @@ features.
 - Automatic support for IKEv1 or IKEv2 without further configuration by user
 - Optional choice of Policy-based or Route-based VPN with ease of a switch
 - Dynamic NAT or 1:1 NAT over IPSEC
-- Automatic support for most IKEv1 or IKEv2 ciphers without further configuration by user. See complete list of ciphers here:
-  IKEv1 https://wiki.strongswan.org/projects/strongswan/wiki/IKEv1CipherSuites
+- Automatic support for most IKEv1 or IKEv2 ciphers without further configuration by user. See complete list of ciphers here:\n
+  IKEv1 https://wiki.strongswan.org/projects/strongswan/wiki/IKEv1CipherSuites \n
   IKEv2 https://wiki.strongswan.org/projects/strongswan/wiki/IKEv2CipherSuites 
 - Other parameters which are normally manually configured, are automatically handled (ie. phase1 and phase2 lifetimes)
 - VPC route table routes and Security Groups are automatically configured to allow onprem traffic from VPN tunnel
