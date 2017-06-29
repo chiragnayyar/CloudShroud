@@ -17,4 +17,7 @@ features.
 # Setup Instructions
 1) Copy the 'CloudShroud_template.json' template above to your local computer
 2) Log into your AWS management console, and go to the "CloudFormation" service page
-3) 
+3) Click "Create New Stack", and browse to the 'CloudShroud_template.json' on your local computer
+4) On the next page you will fill out parameters for your VPN.
+
+
