@@ -5,6 +5,8 @@
 # Get userdata and variables
 source /etc/strongswan/variables
 MY_EIP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+MY_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+echo "$MY_ID" >> /etc/strongswan/variables
 
 # Map user friendly DH group to Strongswan keyword
 groups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="modp2048" ["Group15"]="modp3072" ["Group16"]="modp4096" ["Group17"]="modp6144" ["Group18"]="modp8192" ["Group22"]="modp1024s160" ["Group23"]="modp2048s224" ["Group24"]="modp2048s256" ["Group25"]="ecp192" ["Group26"]="ecp224" ["Group19"]="ecp256" ["Group20"]="ecp384" ["Group21"]="ecp521" ["Group27"]="ecp224bp" ["Group28"]="ecp256bp" ["Group29"]="ecp384bp" ["Group30"]="ecp512bp" )
