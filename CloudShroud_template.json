@@ -225,7 +225,7 @@
 					"Install": {
 						"files": {
 							"/etc/strongswan/setup.sh": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup.sh",
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup",
 								"mode": "000755",
 								"user": "root",
 								"group": "root"
@@ -236,7 +236,9 @@
 								"user": "root",
 								"group": "root"
 								
-								}
+								},
+							"/etc/init.d/cloudshroud-cleanup": {
+								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cloudshroud-cleanup"
 								},
 						"commands": {
 							"setvpc": {
