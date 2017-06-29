@@ -1,0 +1,136 @@
+#!/bin/bash
+# chkconfig –list
+# chkconfig: 2345 99 1
+# This script will do a clean up of SGs and VPC route tables to avoid black holes and unnecessary SG rules. It will also clean up before Cloudformation stack is deleted # if necessary
+
+
+### BEGIN INIT INFO
+# Provides: cloudshroud-cleanup
+# Required-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Cleans up SGs and VPC route tables for CloudShroud
+# Description: Cleans up SGs and VPC route tables for CloudShroud
+### END INIT INFO
+
+# Import CloudShroud variables
+source /etc/strongswan/variables
+MY_ID="$(curl http://169.254.169.254/latest/meta-data/instance-id)"
+
+# Import status codes
+source /etc/init.d/functions
+
+# Get all the route table ids in this VPC
+route_tables=$(aws ec2 describe-route-tables --region ${REGION} --query 'RouteTables[*].[VpcId==`'${VPC}'`,RouteTableId]' --output text | grep True | awk '{print $2}')
+
+# Check what routes/targets are in each route tab
+existing_routes () {
+aws ec2 describe-route-tables --region ${REGION} --query 'RouteTables[?RouteTableId==`'$1'`].Routes[*]' --output text | awk '{print $1}'
+}
+
+existing_targets () {
+aws ec2 describe-route-tables --region ${REGION} --query 'RouteTables[?RouteTableId==`'$1'`].Routes[*]' --output text | awk '{print $2}'
+}
+
+# Function to update the VPC route table(s) with route to on-prem network
+create_onprem_route () {
+aws ec2 create-route --region $REGION --route-table-id $1 --destination-cidr-block $2 --instance-id $MY_ID
+}
+
+# Function to delete the onprem route(s) from VPC route table(s)
+delete_onprem_route () {
+aws ec2 delete-route --region $REGION --route-table-id $1 --destination-cidr-block $2
+}
+
+# List the security group ids for this VPC
+security_groups=$(aws ec2 describe-security-groups --region ${REGION} --query 'SecurityGroups[*].[VpcId==`'${VPC}'`,GroupId]' --output text | grep True | awk '{print $2}')
+
+# Function to update SGs to allow traffic from another SG
+update_sg () {
+aws ec2 authorize-security-group-ingress --region $REGION --group-id $1 --protocol all --source-group $2
+} 
+
+# Function to revoke SGs at shutdown
+revoke_sg () {
+aws ec2 revoke-security-group-ingress --region $REGION --group-id $1 --protocol all --source-group $2
+}
+
+
+start() {
+
+	# Loop will go through each route table in this VPC, and if there is no conflicting route for on-prem, will point on-prem route to Openswan ENI
+	for table in $route_tables;do
+		existing_rts=$(existing_routes $table | awk '{print $1}')
+		for onprem in $(echo "$ONPREM" | sed "s/,/\n/g");do	
+			conflict=0
+			for route in $existing_rts; do
+				if [ "$route" == "$onprem" ]
+				then
+					conflict=1
+					break
+				fi
+			done
+			if [ $conflict -eq 0 ]
+			then
+				echo "NO conflict for $onprem in $table"
+				create_onprem_route $table $onprem
+			else
+				echo "conflict for $onprem in $table"
+			fi
+		done
+	done	
+
+	# This next loop will go through and allow all security groups in the VPC to communicate with the Openswan EC2, and vice versa
+	
+	for sg in $security_groups; do
+		update_sg $sg $SG_ID
+	done
+}
+stop() {
+	# Loop to delete SG entries
+	for sg in $security_groups; do 
+		revoke_sg $sg $SG_ID
+	done
+	
+	# Loop to delete VPC route table entries for on-prem routes *IF* those routes are pointing to our Strongswan instance.
+	for table in $route_tables;do
+		existing_rts=$(existing_routes $table)
+		existing_tgts=$(existing_targets $table)
+		routes=()
+		targets=()
+			for route in $existing_rts; do
+				routes+=( $route )
+			done
+			for target in $existing_tgts; do
+				targets+=( $target )
+			done
+			for ((i=0;i<${#routes[@]};++i)); do
+				if [ "${targets[$i]}" == "$MY_ID" ]
+				then
+					delete_onprem_route $table ${routes[$i]}
+				fi
+			done
+				
+		
+	done
+
+
+}
+case "$1" in
+	start)
+		start
+		touch /var/lock/subsys/cloudshroud-cleanup
+		RETVAL=0
+		;;
+	stop)
+		stop
+		rm -f /var/lock/subsys/cloudshroud-cleanup
+		RETVAL=0
+		;;
+	*)
+	echo "Usage: $0 {start|stop}"
+	RETVAL=2
+esac
+
+exit $RETVAL
