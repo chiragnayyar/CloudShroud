@@ -126,7 +126,6 @@ case "$1" in
 		stop
 		rm -f /var/lock/subsys/cloudshroud-cleanup
 		RETVAL=$?
-		sleep 30
 		;;
 	*)
 	echo "Usage: $0 {start|stop}"
