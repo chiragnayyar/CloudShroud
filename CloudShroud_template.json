@@ -108,7 +108,7 @@
 			"ConstraintDescription": "Remote networks must be a valid IP CIDR range of the form x.x.x.x/x. (Example 10.0.0.0/16)."
 		},
 		"LocalNATNet": {
-			"Description": "There are two methods of NAT'ing - Dynamic NAT and 1:1 NAT. For Dynamic NAT specify a single network to translate your entire VPC to. The network mask must be the same as your VPC network. In this case host IPs will translate directly from the actual VPC network to NAT network, and vice versa. Alternatively, you can specify individual 1:1 mappings of host IPs to NAT IPs, separated by commas - such as '<VPC IP>,<NAT IP>,<VPC IP>,<NAT IP>...',. For example you could specify 10.0.0.27,192.168.25.24 assuming that 192.168.25.24 is an EC2 in your VPC and you want to translate it to NAT IP, 10.0.0.27. You can also choose 'disabled' to bypass this feature",
+			"Description": "There are two methods of NAT'ing - Dynamic NAT and 1:1 NAT. For Dynamic NAT specify a single network to translate your entire VPC to. The network mask must be the same as your VPC network. In this case host IPs will translate directly from the actual VPC network to NAT network, and vice versa. Alternatively, you can specify individual 1:1 mappings of host IPs to NAT IPs, separated by commas - such as '<VPC IP>,<NAT IP>,<VPC IP>,<NAT IP>...',. For example you could specify 10.0.0.27, 192.168.25.24 assuming that 192.168.25.24 is an EC2 in your VPC and you want to translate it to NAT IP, 10.0.0.27. You can also choose 'disabled' to bypass this feature",
 			"Type":"String",
 			"Default": "disabled",
 			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E][d,D]))",
@@ -151,14 +151,14 @@
 			"ConstraintDescription": "You must choose a valid name for your VPN"
 		},
 		"LinkLocal": {
-			"Description": "The local virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it (ie. IP conflict with VPN peer), *AND* you are using route-based VPN",
+			"Description": "The local virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it (ie. IP conflict with VPN peer)",
 			"Type": "String",
 			"Default": "169.254.13.254/30",
 			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
 			"ConstraintDescription": "You must choose a valid local VTI IP"
 		},
 		"LinkRemote": {
-			"Description": "The remote virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it, *AND* you are using route-based VPN",
+			"Description": "The remote virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it",
 			"Type": "String",
 			"Default": "169.254.13.253/30",
 			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
@@ -169,38 +169,48 @@
 	"Mappings": {
 		"RegionMap": {
 			"us-east-1": {
-				"Strongswan": "ami-9c9a12f4"
+				"Strongswan": "ami-956f5283"
 			},
 			"us-west-1": {
-				"Strongswan": "ami-cf47518a"
+				"Strongswan": "ami-80a28ee0"
 			},
 			"us-west-2": {
 				"Strongswan": "ami-164a5c6f"
 			},
 			"eu-west-1": {
-				"Strongswan": "ami-5e77c229"
-			},
-			"ap-southeast-1": {
-				"Strongswan": "ami-9a193ac8"
-			},
-			"ap-southeast-2": {
-				"Strongswan": "ami-e9a7c8d3"
-			},
-			"ap-northeast-1": {
-				"Strongswan": "ami-d18cb2d0"
-			},
-			"sa-east-1": {
-				"Strongswan": "ami-2ddb6d30"
-			},
-			"eu-central-1": {
-				"Strongswan": "ami-6a97a577"
-			},
-			"ca-central-1": {
-				"Strongswan": "ami-d48634b0"
+				"Strongswan": "ami-c516f2bc"
 			},
 			"eu-west-2": {
-				"Strongswan": "ami-cb212baf"
+				"Strongswan": "ami-fa27319e"
+			},
+			"us-east-2": {
+				"Strongswan": "ami-0e2e0f6b"
+			},
+			"ap-southeast-1": {
+				"Strongswan": "ami-f819909b"
+			},
+			"ap-southeast-2": {
+				"Strongswan": "ami-17e2f174"
+			},
+			"ap-northeast-1": {
+				"Strongswan": "ami-ee170489"
+			},
+			"ap-northeast-2": {
+				"Strongswan": "ami-284e9146"
+			},
+			"sa-east-1": {
+				"Strongswan": "ami-d3b7ddbf"
+			},
+			"eu-central-1": {
+				"Strongswan": "ami-d78e2fb8"
+			},
+			"ca-central-1": {
+				"Strongswan": "ami-d7942bb3"
+			},
+			"ap-south-1": {
+				"Strongswan": "ami-15b2cc7a"
 			}
+			
 		}
 	},
 	"Resources": {
@@ -215,7 +225,6 @@
 		},
 		"StrongswanEC2": {
 			"Type": "AWS::EC2::Instance",
-			"DependsOn":["StrongswanIAMPolicy","StrongswanIAMRole","StrongswanInstanceProfile"],
 			"Metadata": {
 				"AWS::CloudFormation::Init": {
 					"configSets": {
@@ -464,6 +473,7 @@
 		},
 
 		"StrongswanSg": {
+			"DependsOn": ["StrongswanIAMPolicy","StrongswanIAMRole","StrongswanInstanceProfile"],
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
 				"GroupDescription": "Security group used by Strongswan EC2",
@@ -549,73 +559,70 @@
 			}
 		}
 	},
-	"Conditions": {
+	"Conditions" : {
 		"RouteBased" : {
 				"Fn::Equals": [
 					{"Ref": "RouteType"},
 					"route-based"]
-			},
+		},
 		"PFSenabled" : {
+				"Fn::Not" : [{
+					"Fn::Equals": [
+						{"Ref": "PFS"},
+						"Skip"]
+					}]	
+				},
+		"PFSNotEnabled" : {
 				"Fn::Equals": [
 					{"Ref": "PFS"},
 					"Skip"]
-			}
+				}
 	},
-	"Outputs": {
+				
+	"Outputs" : {
 		"Strongswan" : {
-			"Description": "The public IP of your Strongswan VPN endpoint. Give this to your remote peer to configure their side",
+			"Description": "The public IP of your Strongswan VPN endpoint.",
 			"Value" : {"Fn::GetAtt" : ["StrongswanEC2","PublicIp"]
+			}
 			},
-		"AWS Tunnel VTI IP" : {
+		"AWSTunnelVtiIp" : {
 			"Description": "The inside tunnel VTI IP on the AWS side of this VPN",
 			"Value" : {"Ref":"LinkLocal"},
 			"Condition": "RouteBased"
 			},
-		"Remote Tunnel VTI IP": {
+		"RemoteTunnelVtiIp": {
 			"Description": "The inside tunnel VTI IP for the remote side of this VPN",
 			"Value": {"Ref":"LinkRemote"},
 			"Condition": "RouteBased"
 			},
-		"AWS VPN endpoint role": {
-			"Description" : "There is an initiator and a responder in VPN negotiations. The remote side is always the initiator."
-			"Value": "Strict Responder"
+		"AWSVpnEndpointRole": {
+			"Description" : "There is an initiator and a responder in VPN negotiations.",
+			"Value": {"Fn::Sub": "Strict Responder"}
 			},
-		"Preshared Key": {
-			"Description" : "Hidden here for security. This password needs to be agreed upon by you and your remote peer."
-			"Value": "*******"
-			},
-		"Phase 1 Encryption" {
-			"Description" : "Any IKEv1 or IKEv2 cipher is automatically detected and supported",
+		"Phase1Encryption": {
+			"Description" : "Any IKEv1/IKEv2 encryption, authentication, DHgroup",
 			"Value": "Any"
 			},
-		"Phase 2 Encryption" {
+		"Phase2Encryption": {
 			"Description": "The phase 2 (IPSEC) encryption that will be used",
 			"Value": {"Ref":"Phase2Enc"},
-			"Condition": {"Fn::If": ["PFSenabled","False","True"]}
+			"Condition": "PFSenabled"
 		},
-		"Phase 2 Integrity/Authentication" {
-			"Description": "The phase 2 (IPSEC) Integrity (aka. Authentication or Hashing) that will be used",
+		"Phase2Integrity": {
+			"Description": "The phase 2 (IPSEC) Integrity (aka. Authentication or Hashing)",
 			"Value": {"Ref":"Phase2Hash"},
-			"Condition": {"Fn::If": ["PFSenabled","False","True"]}
+			"Condition": "PFSenabled"
 		},
-		"PFS DH Group" {
-			"Description": "The Diffie-Hellman group that will be used for Perfect Forward Secrecy (phase 2)",
+		"PFSDhGroup" : {
+			"Description": "The PFS DH Group that will be used for phase 2",
 			"Value": {"Ref": "PFS"},
-			"Condition": {"Fn::If": ["PFSenabled","False","True"]}
+			"Condition": "PFSenabled"
 		},
-		"Phase 2 Encryption" {
-			"Description": "Any phase 2 encryption may be used for IKEv2 as well as IKEv1 (as long as PFS is not enabled with IKEv1)",
+		"Phase2Encrypt" : {
+			"Description": "Any phase 2 encryption, authentication, DHgroup",
 			"Value": "Any",
-			"Condition": {"Fn::If": ["PFSenabled","True","False"]}
-
-		},
-		"Phase 2 Integrity/Authentication" {
-			"Description": "Any phase 2 integrity (aka. authentication or hashing) may be used for IKEv2 as well as IKEv1 (as long as PFS is not enabled with IKEv1)",
-			"Value": "Any",
-			"Condition": {"Fn::If": ["PFSenabled","True","False"]}
-		}
-		
-		
-	}	
+			"Condition": "PFSNotEnabled"
 			
+		}
+	}
 }
