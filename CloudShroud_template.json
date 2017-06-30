@@ -76,20 +76,21 @@
 			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
 		},
 		"VPCID": {
-			"Description": "This is the VPC id that you want to launch Strongswan in. NOTE: Your VPC must have an attached Internet Gateway for this stack to successfully deploy!",
+			"Description": "This is the VPC that you want to launch Strongswan in. NOTE: Your VPC must have an attached Internet Gateway for this stack to successfully deploy a working VPN!",
 			"Type": "AWS::EC2::VPC::Id",
-			"ConstraintDescription": "must choose a valid existing VPC id."
+			"ConstraintDescription": "must choose a valid existing VPC to launch CloudShroud in."
 		},
 		"StrongswanSubnet": {
-			"Description": "Choose a valid public subnet in your VPC to launch Strongswan in. NOTE: This stack will not deploy properly if you choose a private subnet!",
+			"Description": "Choose a public subnet in your VPC to launch Strongswan in. NOTE: This stack will not deploy properly if you choose a private subnet!",
 			"Type": "AWS::EC2::Subnet::Id"
 		},
 		"PSK": {
-			"Description": "The preshared key that you want to use for the VPN. You can use upper and lower letters, numbers, and password length must be a min of 8 characters and max of 30.",
+			"Description": "The preshared key that you want to use for the VPN. You can use upper/lower letters, numbers, special characters (#!@&) and password length must be a min of 8 characters and max of 30.",
 			"Type": "String",
 			"MinLength": "8",
 			"MaxLength": "30",
 			"NoEcho":"True",
+			"AllowedPattern": "([#!@&a-zA-Z0-9]+)",
 			"ConstraintDescription": "Preshared Key  upper and lower letters, numbers, and password length must be a min of 8 characters and max of 30."
 		},
 		"RemotePeer": {
@@ -144,7 +145,7 @@
 			"ConstraintDescription": "You must choose a valid authentication"
 		},
 		"VPNName": {
-			"Description": "What would you like to name this VPN? You can use only upper/lower case letters and underscores (_)",
+			"Description": "What would you like to name this VPN? You can use only upper/lower case letters (a-z) and underscores (_)",
 			"Type": "String",
 			"Default": "site_abc",
 			"AllowedPattern": "[a-zA-Z,_]+",
@@ -169,46 +170,46 @@
 	"Mappings": {
 		"RegionMap": {
 			"us-east-1": {
-				"Strongswan": "ami-956f5283"
+				"Strongswan": "ami-183b060e"
 			},
 			"us-west-1": {
-				"Strongswan": "ami-80a28ee0"
+				"Strongswan": "ami-c63805d0"
 			},
 			"us-west-2": {
-				"Strongswan": "ami-164a5c6f"
+				"Strongswan": "ami-79405100"
 			},
 			"eu-west-1": {
-				"Strongswan": "ami-c516f2bc"
+				"Strongswan": "ami-3366824a"
 			},
 			"eu-west-2": {
-				"Strongswan": "ami-fa27319e"
+				"Strongswan": "ami-3b26305f"
 			},
 			"us-east-2": {
-				"Strongswan": "ami-0e2e0f6b"
+				"Strongswan": "ami-843110e1"
 			},
 			"ap-southeast-1": {
-				"Strongswan": "ami-f819909b"
+				"Strongswan": "ami-b31099d0"
 			},
 			"ap-southeast-2": {
-				"Strongswan": "ami-17e2f174"
+				"Strongswan": "ami-bae6f5d9"
 			},
 			"ap-northeast-1": {
-				"Strongswan": "ami-ee170489"
+				"Strongswan": "ami-8b0211ec"
 			},
 			"ap-northeast-2": {
-				"Strongswan": "ami-284e9146"
+				"Strongswan": "ami-2f4c9341"
 			},
 			"sa-east-1": {
-				"Strongswan": "ami-d3b7ddbf"
+				"Strongswan": "ami-af89e3c3"
 			},
 			"eu-central-1": {
-				"Strongswan": "ami-d78e2fb8"
+				"Strongswan": "ami-39993856"
 			},
 			"ca-central-1": {
-				"Strongswan": "ami-d7942bb3"
+				"Strongswan": "ami-40902f24"
 			},
 			"ap-south-1": {
-				"Strongswan": "ami-15b2cc7a"
+				"Strongswan": "ami-deaed0b1"
 			}
 			
 		}
