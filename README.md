@@ -31,17 +31,17 @@ features.
 
 ## Advanced Settings and Caveats
 Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced settings that deserve additional elaboration
-#### VPN Routing Type: 
+### VPN Routing Type: 
 There are two very common VPN implementations which are route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of device they are using. You will notice that there are some presets available (ie CiscoASA, CiscoIOS), but these are still experimental for now.
 
-#### Local NAT Host(s) or Network: 
+### Local NAT Host(s) or Network: 
 You can choose to NAT your entire VPC (ie. VPC actual 10.0.0.0/16 --> VPC nat 172.16.0.0/16, etc) OR you can do a 1:1 NAT of individual IPs in your VPC. If you choose to do the latter you will need to specify each 'real' host IP in your VPC followed by the corresponding IP that you want to NAT it to. You can do this for as many hosts as you want (ie. HOST, NATIP, HOST, NATIP, etc) .
 
 You CANNOT combine NAT'ing networks AND NAT'ing individual hosts - it's one or the other. Either specify a single NAT CIDR that you want your VPC translated to OR specify a comma delimited list of HOST, NATIPs.
 
 It's important to note that if you choose to NAT your VPC, you use a NAT CIDR that is the same network mask of your VPC or longer. Also, you should not choose a NAT CIDR or NAT IPs that are specified in the *LAN(s) behind remote VPN peer* parameter. If you do it can cause confusion in the VPN traffic selectors.
 
-#### Local/Remote VTI IPs:
+### Local/Remote VTI IPs:
 These IPs are only relevant to the remote peer if their firewall is using route-based VPN. You can leave these IP settings alone unless your peer partner specifically requests that they are changed to avoid conflict.
 
 ## Stack Deletion Instructions
