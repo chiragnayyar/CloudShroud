@@ -9,7 +9,8 @@ MY_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 echo "MY_ID=$MY_ID" >> /etc/strongswan/variables
 
 # Map user friendly DH group to Strongswan keyword
-declare -A groups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="modp2048" ["Group15"]="modp3072" ["Group16"]="modp4096" ["Group17"]="modp6144" ["Group18"]="modp8192" ["Group22"]="modp1024s160" ["Group23"]="modp2048s224" ["Group24"]="modp2048s256" ["Group25"]="ecp192" ["Group26"]="ecp224" ["Group19"]="ecp256" ["Group20"]="ecp384" ["Group21"]="ecp521" ["Group27"]="ecp224bp" ["Group28"]="ecp256bp" ["Group29"]="ecp384bp" ["Group30"]="ecp512bp" )
+declare -A pfsgroups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="modp2048" ["Group15"]="modp3072" ["Group16"]="modp4096" ["Group17"]="modp6144" ["Group18"]="modp8192" ["Group22"]="modp1024s160" ["Group23"]="modp2048s224" ["Group24"]="modp2048s256" ["Group25"]="ecp192" ["Group26"]="ecp224" ["Group19"]="ecp256" ["Group20"]="ecp384" ["Group21"]="ecp521" ["Group27"]="ecp224bp" ["Group28"]="ecp256bp" ["Group29"]="ecp384bp" ["Group30"]="ecp512bp" )
+declare -A ikegroups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="modp2048" ["Group15"]="modp3072" ["Group16"]="modp4096" ["Group17"]="modp6144" ["Group18"]="modp8192" ["Group22"]="modp1024s160" ["Group23"]="modp2048s224" ["Group24"]="modp2048s256" ["Group25"]="ecp192" ["Group26"]="ecp224" ["Group19"]="ecp256" ["Group20"]="ecp384" ["Group21"]="ecp521" ["Group27"]="ecp224bp" ["Group28"]="ecp256bp" ["Group29"]="ecp384bp" ["Group30"]="ecp512bp" )
 
 # Remove any whitespacing from commadelimitedlist variables. Lowercase NAT variable
 ONPREM=$(echo ${ONPREM//[[:blank:]]/})
@@ -71,7 +72,7 @@ aws ec2 create-route --region $REGION --route-table-id $1 --destination-cidr-blo
 }
 
 # List the security group ids for this VPC
-security_groups=$(aws ec2 describe-security-groups --region ${REGION} --query 'SecurityGroups[*].[VpcId==`'${VPC}'`,GroupId]' --output text | grep True | awk '{print $2}')
+security_groups=$(aws ec2 describe-security-groups --region ${REGION} --query 'Securitygroups[*].[VpcId==`'${VPC}'`,GroupId]' --output text | grep True | awk '{print $2}')
 
 # Update SGs to allow traffic from another SG
 update_sg () {
@@ -109,18 +110,30 @@ done
 
 # Create the IPSEC config file for strongswan
 CONFIG="/etc/strongswan/${NAME}.vpn.conf"
-ESP="${P2ENC}-${P2HASH}-${groups[${PFS}]}"
-if [ "$PFS" == "Skip" ] && [ "$TYPE" == "route-based" ] # if user chose route-based VPN with ikev1 PFS disabled, we don't need to know phase 1 or phase 2 parameters from peer
+if [ "$PFS" != "Disable" ]
+then
+	ESP="${P2ENC}-${P2HASH}-${pfsgroups[${PFS}]}"
+else
+	ESP="${P2ENC}-${P2HASH}"
+fi
+IKE="${P1ENC}-${P1INT}-${ikegroups[${P1DHGROUP}]}"
+
+if [ "$TYPE" == "route-based" ] || [ "$TYPE" == "cisco-ios" ] # if user chose route-based VPN 
 then
   cat <<EOF > $CONFIG
 conn $NAME
-	auto=add
+	keyexchange=$IKEVERSION
+	auto=start
 	type=tunnel
 	authby=secret
 	leftid=$MY_EIP
 	left=%defaultroute
 	right=$PEER
-	rekey=no
+	rekeyfuzz=0%
+	ikelifetime=$P1LIFE
+	lifetime=$P2LIFE
+	esp=${ESP}!
+	ike=${IKE}!
 	leftsubnet=0.0.0.0/0
 	rightsubnet=0.0.0.0/0
 	dpddelay=10s
@@ -131,66 +144,32 @@ conn $NAME
 EOF
 chmod 644 $CONFIG
 	
-elif [ "$PFS" != "Skip" ] && [ "$TYPE" == "route-based" ] # if user chose route-based with ikev1 PFS enabled, we must specify ESP parameters expected from peer
+
+elif [ "$TYPE" == "policy-based" ] || [ "$TYPE" == "cisco-asa" ] # if user chose policy-based
 then
 		cat <<EOF > $CONFIG
 conn $NAME
-	auto=add
+	keyexchange=$IKEVERSION
+	auto=start
 	type=tunnel
 	authby=secret
 	leftid=$MY_EIP
 	left=%defaultroute
 	right=$PEER
-	esp=$ESP
-	rekey=no
-	leftsubnet=0.0.0.0/0
-	rightsubnet=0.0.0.0/0
+	rekeyfuzz=0%
+	ikelifetime=$P1LIFE
+	lifetime=$P2LIFE
+	esp=${ESP}!
+	ike=${IKE}!
+	leftsubnet=$LEFTSUBNET
+	rightsubnet=$ONPREM
 	dpddelay=10s
 	dpdtimeout=30s
 	dpdaction=clear
-	mark=50
 	leftupdown="/etc/strongswan/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
-
-elif [ "$PFS" == "Skip" ] && [ "$TYPE" == "policy-based" ] # if user chose policy-based with ikev1 PFS disabled, we need to specify subnets
-then
-		cat <<EOF > $CONFIG
-conn $NAME
-	auto=add
-	type=tunnel
-	authby=secret
-	leftid=$MY_EIP
-	left=%defaultroute
-	right=$PEER
-	rekey=no
-	leftsubnet=$LEFTSUBNET
-	rightsubnet=$ONPREM
-	dpddelay=10s
-	dpdtimeout=30s
-	dpdaction=clear
-EOF
-chmod 644 $CONFIG
 			
-elif [ "PFS" != "Skip" ] && [ "$TYPE" == "policy-based" ] # if user chose policy-based with ikev1 PFS enabled. We need to specify subnets as well as ESP parameters
-then 
-		cat <<EOF > $CONFIG
-conn $NAME
-	auto=add
-	type=tunnel
-	authby=secret
-	leftid=$MY_EIP
-	left=%defaultroute
-	right=$PEER
-	esp=$ESP
-	rekey=no
-	leftsubnet=$LEFTSUBNET
-	rightsubnet=$ONPREM
-	dpddelay=10s
-	dpdtimeout=30s
-	dpdaction=clear
-EOF
-chmod 644 $CONFIG
 fi
 
 # Create PSK file
