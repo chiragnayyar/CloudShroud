@@ -29,7 +29,15 @@ features.
 3) Click "Create New Stack", and browse to the 'CloudShroud_template.json' on your local computer
 4) On the next page you will fill out parameters for your VPN. Note that some sections are optional (and marked as so)
 
-## Advanced Settings and Caveats
+## Stack Deletion Instructions
+**_VERY IMPORTANT!!_**
+The Strongswan EC2 runs cleanup scripts everytime that the server is stopped. BE SURE TO STOP the ec2 prior to deleting your Cloudformation stack. This will ensure that the EC2 has enough time to remove all created Security Group and VPC route table dependencies before the EC2 itself is terminated during stack deletion.
+
+If you don't stop the EC2 prior to stack deletion it can cause the stack to hang and you will manually have to remove Security Group and VPC route table entries.
+
+I'm currently looking at a better cleanup system.
+
+## **_Advanced Settings and Caveats_**
 Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced settings that deserve additional elaboration
 ### VPN Routing Type: 
 There are two very common VPN implementations which are route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of device they are using. You will notice that there are some presets available (ie CiscoASA, CiscoIOS), but these are still experimental for now.
@@ -44,12 +52,5 @@ It's important to note that if you choose to NAT your VPC, you use a NAT CIDR th
 ### Local/Remote VTI IPs:
 These IPs are only relevant to the remote peer if their firewall is using route-based VPN. You can leave these IP settings alone unless your peer partner specifically requests that they are changed to avoid conflict.
 
-## Stack Deletion Instructions
-**_VERY IMPORTANT!!_**
-The Strongswan EC2 runs cleanup scripts everytime that the server is stopped. BE SURE TO STOP the ec2 prior to deleting your Cloudformation stack. This will ensure that the EC2 has enough time to remove all created Security Group and VPC route table dependencies before the EC2 itself is terminated during stack deletion.
-
-If you don't stop the EC2 prior to stack deletion it can cause the stack to hang and you will manually have to remove Security Group and VPC route table entries.
-
-I'm currently looking at a better cleanup system.
 
 
