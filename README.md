@@ -35,6 +35,8 @@ The Strongswan EC2 runs cleanup scripts everytime that the server is stopped. BE
 
 If you don't stop the EC2 prior to stack deletion it can cause the stack to hang and you will manually have to remove Security Group and VPC route table entries.
 
+Also, if you have a lot of Security Groups and/or VPC route tables with a lot of entries, the scripts may take a while to complete.
+
 I'm currently looking at a better cleanup system.
 
 ## Advanced Settings and Caveats
