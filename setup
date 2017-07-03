@@ -74,7 +74,7 @@ aws ec2 create-route --region $REGION --route-table-id $1 --destination-cidr-blo
 # List the security group ids for this VPC
 security_groups=$(aws ec2 describe-security-groups --region ${REGION} --query 'SecurityGroups[*].[VpcId==`'${VPC}'`,GroupId]' --output text | grep True | awk '{print $2}')
 
-# Update SGs to allow traffic from another SG
+# Function to update SGs to allow traffic from another SG
 update_sg () {
 aws ec2 authorize-security-group-ingress --region $REGION --group-id $1 --protocol all --source-group $2
 } 
@@ -157,8 +157,8 @@ conn $NAME
 	left=%defaultroute
 	right=$PEER
 	rekeyfuzz=0%
-	ikelifetime=${P1LIFE}
-	lifetime=${P2LIFE}
+	ikelifetime=${P1LIFE}h
+	lifetime=${P2LIFE}h
 	esp=${ESP}!
 	ike=${IKE}!
 	leftsubnet=$LEFTSUBNET
