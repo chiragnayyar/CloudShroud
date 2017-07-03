@@ -19,7 +19,7 @@
 					},
 					"Parameters": ["Phase2Enc", "Phase2Int", "PFS", "Phase2Lifetime", "RemoteNet"]
 				}, {
-					"Lable": {
+					"Label": {
 						"default": "Advanced Settings (optional)"
 					},
 					"Parameters": ["RouteType", "LocalNATNet", "LinkLocal", "LinkRemote"]
@@ -166,8 +166,8 @@
 		"LocalNATNet": {
 			"Description": "There are two methods of NAT'ing - Dynamic NAT and 1:1 NAT. For Dynamic NAT specify a single network to translate your entire VPC to. The network mask must be the same as your VPC network. In this case host IPs will translate directly from the actual VPC network to NAT network, and vice versa. Alternatively, you can specify individual 1:1 mappings of host IPs to NAT IPs, separated by commas - such as '<VPC IP>,<NAT IP>,<VPC IP>,<NAT IP>...',. For example you could specify 10.0.0.27, 192.168.25.24 assuming that 192.168.25.24 is an EC2 in your VPC and you want to translate it to NAT IP, 10.0.0.27. You can also choose 'disabled' to bypass this feature",
 			"Type": "String",
-			"Default": "disabled",
-			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E][d,D]))",
+			"Default": "Disable",
+			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E]))",
 			"ConstraintDescription": "You must choose a valid NAT IP(s) or network"
 		},
 		"RouteType": {
@@ -206,14 +206,14 @@
 		"IKEDhGroup": {
 			"Description": "The Diffie-Hellman group to use for phase 1 key exchange",
 			"Type": "String",
-			"Default": "2",
-			"AllowedPattern": ["Group2", "Group5", "Group14", "Group15", "Group16", "Group17", "Group18", "Group19", "Group20", "Group21", "Group22", "Group23", "Group24", "Group25", "Group26", "Group27", "Group28", "Group29", "Group30"]
+			"Default": "Group2",
+			"AllowedValues": ["Group2", "Group5", "Group14", "Group15", "Group16", "Group17", "Group18", "Group19", "Group20", "Group21", "Group22", "Group23", "Group24", "Group25", "Group26", "Group27", "Group28", "Group29", "Group30"]
 		},
 
 		"PFS": {
 			"Description": "You need to specify a DH group here ONLY if you are using Perfect Forward Secrecy (PFS). Alternatively, you can choose 'Disable' to disable PFS",
 			"Type": "String",
-			"Default": "2",
+			"Default": "Group2",
 			"AllowedValues": ["Disable", "Group2", "Group5", "Group14", "Group15", "Group16", "Group17", "Group18", "Group19", "Group20", "Group21", "Group22", "Group23", "Group24", "Group25", "Group26", "Group27", "Group28", "Group29", "Group30"],
 			"ConstraintDescription": "You must choose acceptable keyword for DH group, or 'disable'"
 		},
@@ -511,7 +511,7 @@
 								"command": "echo P1DHGROUP=\"$P1DHGROUP\" >> /etc/strongswan/variables",
 								"env": {
 									"P1DHGROUP": {
-										"Ref": "P1DHGROUP"
+										"Ref": "IKEDhGroup"
 									}
 								}
 							},
