@@ -1,45 +1,100 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description":"CloudShroud is a helper CF template which will launch and automate the setup of a Strongswan EC2 to act as a VPN endpoint to your VPC.",
+	"Description": "CloudShroud is a helper CF template which will launch and automate the setup of a Strongswan EC2 to act as a VPN endpoint to your VPC.",
 	"Metadata": {
 		"AWS::CloudFormation::Interface": {
 			"ParameterGroups": [{
 					"Label": {
-						"default": "Basic VPN Configuration"
+						"default": "General VPC Configuration"
 					},
-					"Parameters": ["InstanceType","TerminatePro","VPCID", "StrongswanSubnet", "KeyName", "SSHSourceIP", "VPNName", "PSK", "RemotePeer", "RemoteNet"]
-				},
-				{
+					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "StrongswanSubnet", "KeyName", "SSHSourceIP"]
+				}, {
 					"Label": {
-						"default": "Advanced Configuration (optional)"
+						"default": "Phase 1 IKE Settings (optional)"
 					},
-					"Parameters": ["LocalNATNet","RouteType","LinkLocal","LinkRemote"]
-				},
-				{
+					"Parameters": ["IKEversion", "IKEenc", "IKEint", "IKEDhGroup", "IKELifetime", "VPNName", "PSK", "RemotePeer"]
+				}, {
 					"Label": {
-						"default": "***Needed ONLY with IKEv1 and PFS***"
+						"default": "Phase 2 IPSEC Settings (optional)"
 					},
-					"Parameters": ["PFS", "Phase2Enc", "Phase2Hash"]
+					"Parameters": ["Phase2Enc", "Phase2Int", "PFS", "Phase2Lifetime", "RemoteNet"]
+				}, {
+					"Lable": {
+						"default": "Advanced Settings (optional)"
+					},
+					"Parameters": ["RouteType", "LocalNATNet", "LinkLocal", "LinkRemote"]
+
 				}
 			],
-			"ParameterLabels" : {
-				"InstanceType": {"default" : "Strongswan EC2 type"},
-				"VPCID" : { "default" : "Deployment VPC" },
-				"StrongswanSubnet" : {"default":"The public subnet to deploy Strongswan EC2"},
-				"KeyName" : {"default":"The SSH key pair"},
-				"SSHSourceIP":{"default":"SSH Source IP"},
-				"PSK":{"default":"Preshared Key"},
-				"RemotePeer":{"default":"Remote VPN peer"},
-				"RemoteNet":{"default":"LAN(s) behind remote VPN peer"},
-				"LocalNATNet": {"default":"NAT Network"},
-				"Phase2Enc":{"default": "Phase 2/IPSEC Encryption"},
-				"Phase2Hash":{"default":"Phase 2/Authentication"},
-				"PFS": {"default":"Perfect Forward Secrecy"},
-				"VPNName": {"default":"VPN Name"},
-				"LinkLocal": {"default": "Local VTI IP"},
-				"LinkRemote": {"default": "Remote VTI IP"},
-				"TerminatePro": {"default":"EC2 Termination Protection"}
-            }
+
+			"ParameterLabels": {
+				"InstanceType": {
+					"default": "Strongswan EC2 type"
+				},
+				"VPCID": {
+					"default": "Deployment VPC"
+				},
+				"StrongswanSubnet": {
+					"default": "The public subnet to deploy Strongswan EC2"
+				},
+				"KeyName": {
+					"default": "The SSH key pair"
+				},
+				"SSHSourceIP": {
+					"default": "SSH Source IP"
+				},
+				"PSK": {
+					"default": "Preshared Key"
+				},
+				"RemotePeer": {
+					"default": "Remote VPN peer"
+				},
+				"RemoteNet": {
+					"default": "LAN(s) behind remote VPN peer"
+				},
+				"LocalNATNet": {
+					"default": "Local NAT Host(s) or Network"
+				},
+				"Phase2Enc": {
+					"default": "Phase 2 IPSEC Encryption"
+				},
+				"Phase2Int": {
+					"default": "Phase 2 IPSEC Integrity"
+				},
+				"PFS": {
+					"default": "Perfect Forward Secrecy"
+				},
+				"VPNName": {
+					"default": "VPN Name"
+				},
+				"LinkLocal": {
+					"default": "Local VTI IP"
+				},
+				"LinkRemote": {
+					"default": "Remote VTI IP"
+				},
+				"TerminatePro": {
+					"default": "EC2 Termination Protection"
+				},
+				"RouteType": {
+					"default": "VPN Routing Type"
+				},
+				"IKEenc": {
+					"default": "Phase 1 IKE Encryption"
+				},
+				"IKEint": {
+					"default": "Phase 1 IKE Integrity"
+				},
+				"IKELifetime": {
+					"default": "Phase 1 IKE Lifetime"
+				},
+				"Phase2Lifetime": {
+					"default": "Phase 2 IPSEC Lifetime"
+				},
+				"IKEDhGroup": {
+					"default": "Phase 1 IKE DH Group"
+				}
+			}
 
 		}
 	},
@@ -62,10 +117,10 @@
 		},
 		"TerminatePro": {
 			"Description": "It's advisable to leave this to 'True'. If you have this feature enabled it will help prevent from accidently terminating your Strongswan server without further disabling the protection.",
-			"Type":"String",
+			"Type": "String",
 			"Default": "True",
-			"AllowedValues": ["True","False"]
-			},
+			"AllowedValues": ["True", "False"]
+		},
 		"SSHSourceIP": {
 			"Description": "The public IP or IP range of your home or office that you want to allow SSH from.",
 			"Type": "String",
@@ -89,7 +144,7 @@
 			"Type": "String",
 			"MinLength": "8",
 			"MaxLength": "30",
-			"NoEcho":"True",
+			"NoEcho": "True",
 			"AllowedPattern": "([#!@&a-zA-Z0-9]+)",
 			"ConstraintDescription": "Preshared Key  upper and lower letters, numbers, and password length must be a min of 8 characters and max of 30."
 		},
@@ -110,45 +165,84 @@
 		},
 		"LocalNATNet": {
 			"Description": "There are two methods of NAT'ing - Dynamic NAT and 1:1 NAT. For Dynamic NAT specify a single network to translate your entire VPC to. The network mask must be the same as your VPC network. In this case host IPs will translate directly from the actual VPC network to NAT network, and vice versa. Alternatively, you can specify individual 1:1 mappings of host IPs to NAT IPs, separated by commas - such as '<VPC IP>,<NAT IP>,<VPC IP>,<NAT IP>...',. For example you could specify 10.0.0.27, 192.168.25.24 assuming that 192.168.25.24 is an EC2 in your VPC and you want to translate it to NAT IP, 10.0.0.27. You can also choose 'disabled' to bypass this feature",
-			"Type":"String",
+			"Type": "String",
 			"Default": "disabled",
 			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E][d,D]))",
 			"ConstraintDescription": "You must choose a valid NAT IP(s) or network"
 		},
 		"RouteType": {
-			"Description": "You can choose whether this VPN should be 'policy-based' or 'route-based'. Default is route-based",
+			"Description": "You can choose whether this VPN should be 'policy-based' or 'route-based'. Default is route-based. Alternatively, you can choose a specific preset depending on what the remote peer is using for their firewall (note that this last option is still in experimental stage however).",
 			"Type": "String",
-			"Default":"route-based",
-			"AllowedValues": ["policy-based","route-based"],
+			"Default": "route-based",
+			"AllowedValues": ["policy-based", "route-based", "cisco-asa", "cisco-ios"],
 			"ConstraintDescription": "You must choose policy-based or route-based VPN"
 		},
 
-		"PFS": {
-			"Description": "You need to set this value ONLY if you are using ikev1 AND perfect forward secrecy (PFS) together. If you are using IKEv2 with/without PFS, or if you are using IKEv1 without PFS, you can choose to 'Skip' to bypass this part, as it will be handled automatically",
+		"IKEversion": {
+			"Description": "The IKE version to use.",
 			"Type": "String",
-			"Default": "Skip",
-			"AllowedValues": ["Skip","Group2","Group5","Group14","Group15","Group16","Group17","Group18","Group19","Group20","Group21","Group22","Group23","Group24","Group25","Group26","Group27","Group28","Group29","Group30"],
+			"Default": "ikev1",
+			"AllowedValues": ["ikev1", "ikev2"]
+		},
+		"IKEenc": {
+			"Description": "Encryption to use for phase 1. ",
+			"Type": "String",
+			"Default": "aes128",
+			"AllowedValues": ["aes128", "aes192", "aes256", "3des", "camellia128", "camellia192", "camellia256"]
+		},
+		"IKEint": {
+			"Description": "Integrity to use for phase 1. ",
+			"Type": "String",
+			"Default": "sha1",
+			"AllowedValues": ["md5", "sha1", "sha256", "sha384", "sha512", "sha256_96"]
+
+		},
+		"IKELifetime": {
+			"Description": "Lifetime in hours to use for phase 1. Range 2-24",
+			"Type": "String",
+			"Default": "8",
+			"AllowedPattern": "([2-9]|1[0-9]|2[0-4])"
+		},
+		"IKEDhGroup": {
+			"Description": "The Diffie-Hellman group to use for phase 1 key exchange",
+			"Type": "String",
+			"Default": "2",
+			"AllowedPattern": ["Group2", "Group5", "Group14", "Group15", "Group16", "Group17", "Group18", "Group19", "Group20", "Group21", "Group22", "Group23", "Group24", "Group25", "Group26", "Group27", "Group28", "Group29", "Group30"]
+		},
+
+		"PFS": {
+			"Description": "You need to specify a DH group here ONLY if you are using Perfect Forward Secrecy (PFS). Alternatively, you can choose 'Disable' to disable PFS",
+			"Type": "String",
+			"Default": "2",
+			"AllowedValues": ["Disable", "Group2", "Group5", "Group14", "Group15", "Group16", "Group17", "Group18", "Group19", "Group20", "Group21", "Group22", "Group23", "Group24", "Group25", "Group26", "Group27", "Group28", "Group29", "Group30"],
 			"ConstraintDescription": "You must choose acceptable keyword for DH group, or 'disable'"
 		},
 		"Phase2Enc": {
 			"Description": "Encryption to use for phase 2 (IPSEC). This setting is only needed if you are using ikev1 and PFS",
 			"Type": "String",
 			"Default": "aes128",
-			"AllowedValues": ["aes128","aes192","aes256","3des","blowfish128","blowfish192","blowfish256","camellia128","camellia192","camellia256","serpent128","serpent192","serpent256","twofish128","twofish192","twofish256"],
+			"AllowedValues": ["aes128", "aes192", "aes256", "3des", "camellia128", "camellia192", "camellia256"],
 			"ConstraintDescription": "phase 2 encryption must be valid"
 		},
-		"Phase2Hash": {
-			"Description": "Integrity (aka. Authentication) to use for phase 2 (IPSEC). This setting is only needed if you are using ikev1 and PFS",
+		"Phase2Int": {
+			"Description": "Integrity to use for phase 2",
 			"Type": "String",
 			"Default": "sha1",
-			"AllowedValues": ["md5","sha1","sha256","sha384","sha512","sha256_96"],
+			"AllowedValues": ["md5", "sha1", "sha256", "sha384", "sha512", "sha256_96"],
 			"ConstraintDescription": "You must choose a valid authentication"
 		},
-		"VPNName": {
-			"Description": "What would you like to name this VPN? You can use only upper/lower case letters (a-z) and underscores (_)",
+		"Phase2Lifetime": {
+			"Description": "Lifetime in hours to use for phase 2. Range 1-23",
 			"Type": "String",
-			"Default": "site_abc",
-			"AllowedPattern": "[a-zA-Z,_]+",
+			"Default": "1",
+			"AllowedPattern": "([1-9]|1[0-9]|2[0-3])"
+		},
+
+		"VPNName": {
+			"Description": "What would you like to name this VPN? You can use only upper/lower case letters (a-z) and underscores (_) or dashes (-)",
+			"Type": "String",
+			"Default": "site-abc",
+			"AllowedPattern": "[a-zA-Z,_,-]+",
 			"ConstraintDescription": "You must choose a valid name for your VPN"
 		},
 		"LinkLocal": {
@@ -170,48 +264,48 @@
 	"Mappings": {
 		"RegionMap": {
 			"us-east-1": {
-				"Strongswan": "ami-183b060e"
+				"Strongswan": "ami-7694ad60"
 			},
 			"us-west-1": {
-				"Strongswan": "ami-c63805d0"
+				"Strongswan": "ami-3a5e715a"
 			},
 			"us-west-2": {
-				"Strongswan": "ami-79405100"
+				"Strongswan": "ami-0a081873"
 			},
 			"eu-west-1": {
-				"Strongswan": "ami-3366824a"
+				"Strongswan": "ami-a98f69d0"
 			},
 			"eu-west-2": {
-				"Strongswan": "ami-3b26305f"
+				"Strongswan": "ami-70d0c614"
 			},
 			"us-east-2": {
-				"Strongswan": "ami-843110e1"
+				"Strongswan": "ami-210d2c44"
 			},
 			"ap-southeast-1": {
-				"Strongswan": "ami-b31099d0"
+				"Strongswan": "ami-7d870c1e"
 			},
 			"ap-southeast-2": {
-				"Strongswan": "ami-bae6f5d9"
+				"Strongswan": "ami-ba7e6cd9"
 			},
 			"ap-northeast-1": {
-				"Strongswan": "ami-8b0211ec"
+				"Strongswan": "ami-bcd2cfdb"
 			},
 			"ap-northeast-2": {
-				"Strongswan": "ami-2f4c9341"
+				"Strongswan": "ami-0465ba6a"
 			},
 			"sa-east-1": {
-				"Strongswan": "ami-af89e3c3"
+				"Strongswan": "ami-c1d3b9ad"
 			},
 			"eu-central-1": {
-				"Strongswan": "ami-39993856"
+				"Strongswan": "ami-64eb4b0b"
 			},
 			"ca-central-1": {
-				"Strongswan": "ami-40902f24"
+				"Strongswan": "ami-69833c0d"
 			},
 			"ap-south-1": {
-				"Strongswan": "ami-deaed0b1"
+				"Strongswan": "ami-74f7891b"
 			}
-			
+
 		}
 	},
 	"Resources": {
@@ -239,112 +333,189 @@
 								"mode": "000755",
 								"user": "root",
 								"group": "root"
-								},
+							},
 							"/etc/strongswan/aws.updown": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/aws.updown",
 								"mode": "000755",
 								"user": "root",
 								"group": "root"
-								
-								},
+
+							},
 							"/etc/init.d/cloudshroud-cleanup": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cloudshroud-cleanup",
 								"mode": "000755",
 								"user": "root",
 								"group": "root"
-								}
-								},
+							}
+						},
 						"commands": {
 							"setvpc": {
 								"command": "echo VPC=\"$VPC\" >> /etc/strongswan/variables",
 								"env": {
-									"VPC": {"Ref":"VPCID"}
+									"VPC": {
+										"Ref": "VPCID"
 									}
-								},
+								}
+							},
 							"setregion": {
 								"command": "echo REGION=\"$REGION\" >> /etc/strongswan/variables",
 								"env": {
-									"REGION": {"Ref":"AWS::Region"}
-						
-										}
-								},
+									"REGION": {
+										"Ref": "AWS::Region"
+									}
+
+								}
+							},
 							"setonprem": {
 								"command": "echo ONPREM=\"'${ONPREM}'\" >> /etc/strongswan/variables",
 								"env": {
-									"ONPREM": {"Ref": "RemoteNet"}
-						
-										}
-									},
+									"ONPREM": {
+										"Ref": "RemoteNet"
+									}
+
+								}
+							},
 							"setnat": {
 								"command": "echo NAT=\"'${NAT}'\" >> /etc/strongswan/variables",
 								"env": {
-									"NAT": {"Ref": "LocalNATNet"}
-						
-										}
-									},		
+									"NAT": {
+										"Ref": "LocalNATNet"
+									}
+
+								}
+							},
 							"setroutetype": {
 								"command": "echo TYPE=\"$TYPE\" >> /etc/strongswan/variables",
 								"env": {
-									"TYPE": {"Ref": "RouteType"}
+									"TYPE": {
+										"Ref": "RouteType"
+									}
 								}
-								},
+							},
 							"setpfs": {
 								"command": "echo PFS=\"$PFS\" >> /etc/strongswan/variables",
 								"env": {
-									"PFS": {"Ref": "PFS"}
+									"PFS": {
+										"Ref": "PFS"
 									}
-								},
+								}
+							},
 							"setenc": {
 								"command": "echo P2ENC=\"$P2ENC\" >> /etc/strongswan/variables",
 								"env": {
-									"P2ENC": {"Ref": "Phase2Enc"}
+									"P2ENC": {
+										"Ref": "Phase2Enc"
 									}
-								},
+								}
+							},
 							"sethash": {
 								"command": "echo P2HASH=\"$P2HASH\" >> /etc/strongswan/variables",
 								"env": {
-									"P2HASH": {"Ref": "Phase2Hash"}
+									"P2HASH": {
+										"Ref": "Phase2Int"
 									}
-								},
-									
+								}
+							},
+
 							"setpsk": {
 								"command": "echo PSK=\"'$PSK'\" >> /etc/strongswan/variables",
 								"env": {
-									"PSK": {"Ref": "PSK"}
+									"PSK": {
+										"Ref": "PSK"
+									}
 								}
-							
-								},
-							"setpeer":  {
+
+							},
+							"setpeer": {
 								"command": "echo PEER=\"$PEER\" >> /etc/strongswan/variables",
 								"env": {
-									"PEER": {"Ref": "RemotePeer"}
+									"PEER": {
+										"Ref": "RemotePeer"
+									}
 								}
-							
-								},
+
+							},
 							"setsgid": {
 								"command": "echo SG_ID=\"$SG_ID\" >> /etc/strongswan/variables",
 								"env": {
-									"SG_ID": {"Ref": "StrongswanSg"}
+									"SG_ID": {
+										"Ref": "StrongswanSg"
+									}
 								}
-								},
+							},
 							"setname": {
 								"command": "echo NAME=\"$NAME\" >> /etc/strongswan/variables",
 								"env": {
-									"NAME": {"Ref": "VPNName"}
+									"NAME": {
+										"Ref": "VPNName"
+									}
 								}
-								},
+							},
 							"setlinklocal": {
 								"command": "echo LINKLOCAL=\"$LL\" >> /etc/strongswan/variables",
 								"env": {
-									"LL": {"Ref": "LinkLocal"}
+									"LL": {
+										"Ref": "LinkLocal"
+									}
 								}
-								},
+							},
 							"setlinkremote": {
 								"command": "echo LINKREMOTE=\"$LR\" >> /etc/strongswan/variables",
 								"env": {
-									"LR": {"Ref": "LinkRemote"}
+									"LR": {
+										"Ref": "LinkRemote"
+									}
 								}
-								},
+							},
+							"setikeversion": {
+								"command": "echo IKEVERSION=\"$IKEVERSION\" >> /etc/strongswan/variables",
+								"env": {
+									"IKEVERSION": {
+										"Ref": "IKEversion"
+									}
+								}
+							},
+							"setikeenc": {
+								"command": "echo P1ENC=\"$P1ENC\" >> /etc/strongswan/variables",
+								"env": {
+									"P1ENC": {
+										"Ref": "IKEenc"
+									}
+								}
+							},
+							"setikeint": {
+								"command": "echo P1INT=\"$P1INT\" >> /etc/strongswan/variables",
+								"env": {
+									"P1INT": {
+										"Ref": "IKEint"
+									}
+								}
+							},
+							"setikelifetime": {
+								"command": "echo P1LIFE=\"$P1LIFE\" >> /etc/strongswan/variables",
+								"env": {
+									"P1LIFE": {
+										"Ref": "IKELifetime"
+									}
+								}
+							},
+							"setp2lifetime": {
+								"command": "echo P2LIFE=\"$P2LIFE\" >> /etc/strongswan/variables",
+								"env": {
+									"P2LIFE": {
+										"Ref": "Phase2Lifetime"
+									}
+								}
+							},
+							"setikedhgroup": {
+								"command": "echo P1DHGROUP=\"$P1DHGROUP\" >> /etc/strongswan/variables",
+								"env": {
+									"P1DHGROUP": {
+										"Ref": "P1DHGROUP"
+									}
+								}
+							},
+
 							"startscript": {
 								"command": "bash /etc/strongswan/setup"
 							},
@@ -359,7 +530,7 @@
 							}
 						}
 					}
-			
+
 				}
 			},
 			"Properties": {
@@ -380,12 +551,14 @@
 							]]
 					}
 				},
-				"DisableApiTermination": {"Ref":"TerminatePro"},
+				"DisableApiTermination": {
+					"Ref": "TerminatePro"
+				},
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
 					"Fn::FindInMap": ["RegionMap", {
-						"Ref": "AWS::Region"
-					}, "Strongswan"]
+							"Ref": "AWS::Region"
+						}, "Strongswan"]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
@@ -399,49 +572,52 @@
 				},
 				"Monitoring": "false",
 				"Tags": [{
-					"Key": "Name",
-					"Value": "StrongswanEc2"
-				}],
+						"Key": "Name",
+						"Value": "StrongswanEc2"
+					}
+				],
 				"NetworkInterfaces": [{
-					"AssociatePublicIpAddress": "False",
-					"DeleteOnTermination": "true",
-					"Description": "Interface of Strongswan Ec2",
-					"DeviceIndex": 0,
-					"SubnetId": {
-						"Ref": "StrongswanSubnet"
-					},
-					"GroupSet": [{
-						"Ref": "StrongswanSg"
-					}]
-				}]
+						"AssociatePublicIpAddress": "False",
+						"DeleteOnTermination": "true",
+						"Description": "Interface of Strongswan Ec2",
+						"DeviceIndex": 0,
+						"SubnetId": {
+							"Ref": "StrongswanSubnet"
+						},
+						"GroupSet": [{
+								"Ref": "StrongswanSg"
+							}
+						]
+					}
+				]
 
 			}
 		},
-
-
 
 		"StrongswanIAMPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"Roles": [{
-					"Ref": "StrongswanIAMRole"
-				}],
+						"Ref": "StrongswanIAMRole"
+					}
+				],
 				"PolicyName": "StrongswanAPIaccess",
 				"PolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
-						"Effect": "Allow",
-						"Action": [
-							"ec2:AuthorizeSecurityGroupIngress",
-							"ec2:DescribeSecurityGroups",
-							"ec2:DescribeRouteTables",
-							"ec2:DescribeVpcs",
-							"ec2:CreateRoute",
-							"ec2:RevokeSecurityGroupIngress",
-							"ec2:DeleteRoute"
-						],
-						"Resource": "*"
-					}]
+							"Effect": "Allow",
+							"Action": [
+								"ec2:AuthorizeSecurityGroupIngress",
+								"ec2:DescribeSecurityGroups",
+								"ec2:DescribeRouteTables",
+								"ec2:DescribeVpcs",
+								"ec2:CreateRoute",
+								"ec2:RevokeSecurityGroupIngress",
+								"ec2:DeleteRoute"
+							],
+							"Resource": "*"
+						}
+					]
 
 				}
 			}
@@ -452,12 +628,13 @@
 				"AssumeRolePolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
-						"Effect": "Allow",
-						"Principal": {
-							"Service": "ec2.amazonaws.com"
-						},
-						"Action": "sts:AssumeRole"
-					}]
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "ec2.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
 				},
 				"Path": "/"
 			}
@@ -468,13 +645,14 @@
 			"Properties": {
 				"Path": "/",
 				"Roles": [{
-					"Ref": "StrongswanIAMRole"
-				}]
+						"Ref": "StrongswanIAMRole"
+					}
+				]
 			}
 		},
 
 		"StrongswanSg": {
-			"DependsOn": ["StrongswanIAMPolicy","StrongswanIAMRole","StrongswanInstanceProfile"],
+			"DependsOn": ["StrongswanIAMPolicy", "StrongswanIAMRole", "StrongswanInstanceProfile"],
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
 				"GroupDescription": "Security group used by Strongswan EC2",
@@ -522,8 +700,8 @@
 				"IpProtocol": "50",
 				"CidrIp": {
 					"Fn::Join": ["", [{
-						"Ref": "RemotePeer"
-					}, "/32"]]
+								"Ref": "RemotePeer"
+							}, "/32"]]
 				}
 			}
 		},
@@ -538,8 +716,8 @@
 				"ToPort": "4500",
 				"CidrIp": {
 					"Fn::Join": ["", [{
-						"Ref": "RemotePeer"
-					}, "/32"]]
+								"Ref": "RemotePeer"
+							}, "/32"]]
 				}
 			}
 		},
@@ -554,76 +732,56 @@
 				"ToPort": "500",
 				"CidrIp": {
 					"Fn::Join": ["", [{
-						"Ref": "RemotePeer"
-					}, "/32"]]
+								"Ref": "RemotePeer"
+							}, "/32"]]
 				}
 			}
 		}
 	},
-	"Conditions" : {
-		"RouteBased" : {
-				"Fn::Equals": [
-					{"Ref": "RouteType"},
-					"route-based"]
-		},
-		"PFSenabled" : {
-				"Fn::Not" : [{
-					"Fn::Equals": [
-						{"Ref": "PFS"},
-						"Skip"]
-					}]	
+	"Conditions": {
+		"RouteBased": {
+			"Fn::Equals": [{
+					"Ref": "RouteType"
 				},
-		"PFSNotEnabled" : {
-				"Fn::Equals": [
-					{"Ref": "PFS"},
-					"Skip"]
+				"route-based"]
+		},
+		"PFSenabled": {
+			"Fn::Not": [{
+					"Fn::Equals": [{
+							"Ref": "PFS"
+						},
+						"Skip"]
 				}
+			]
+		},
+		"PFSNotEnabled": {
+			"Fn::Equals": [{
+					"Ref": "PFS"
+				},
+				"Skip"]
+		}
 	},
-				
-	"Outputs" : {
-		"Strongswan" : {
+
+	"Outputs": {
+		"Strongswan": {
 			"Description": "The public IP of your Strongswan VPN endpoint.",
-			"Value" : {"Fn::GetAtt" : ["StrongswanEC2","PublicIp"]
+			"Value": {
+				"Fn::GetAtt": ["StrongswanEC2", "PublicIp"]
 			}
-			},
-		"AWSTunnelVtiIp" : {
+		},
+		"AWSTunnelVtiIp": {
 			"Description": "The inside tunnel VTI IP on the AWS side of this VPN",
-			"Value" : {"Ref":"LinkLocal"},
-			"Condition": "RouteBased"
+			"Value": {
+				"Ref": "LinkLocal"
 			},
+			"Condition": "RouteBased"
+		},
 		"RemoteTunnelVtiIp": {
 			"Description": "The inside tunnel VTI IP for the remote side of this VPN",
-			"Value": {"Ref":"LinkRemote"},
+			"Value": {
+				"Ref": "LinkRemote"
+			},
 			"Condition": "RouteBased"
-			},
-		"AWSVpnEndpointRole": {
-			"Description" : "There is an initiator and a responder in VPN negotiations.",
-			"Value": {"Fn::Sub": "Strict Responder"}
-			},
-		"Phase1Encryption": {
-			"Description" : "Any IKEv1/IKEv2 encryption, authentication, DHgroup",
-			"Value": "Any"
-			},
-		"Phase2Encryption": {
-			"Description": "The phase 2 (IPSEC) encryption that will be used",
-			"Value": {"Ref":"Phase2Enc"},
-			"Condition": "PFSenabled"
-		},
-		"Phase2Integrity": {
-			"Description": "The phase 2 (IPSEC) Integrity (aka. Authentication or Hashing)",
-			"Value": {"Ref":"Phase2Hash"},
-			"Condition": "PFSenabled"
-		},
-		"PFSDhGroup" : {
-			"Description": "The PFS DH Group that will be used for phase 2",
-			"Value": {"Ref": "PFS"},
-			"Condition": "PFSenabled"
-		},
-		"Phase2Encrypt" : {
-			"Description": "Any phase 2 encryption, authentication, DHgroup",
-			"Value": "Any",
-			"Condition": "PFSNotEnabled"
-			
 		}
 	}
 }
