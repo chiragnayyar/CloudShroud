@@ -18,7 +18,7 @@ NAT=$(echo ${NAT//[[:blank:]]/})
 NAT=$(echo "$NAT" | tr '[:upper:]' '[:lower:]')
 
 # Detect if user wants to NAT their traffic. If they do, then set the NAT to their local LEFTSUBNET=, otherwise use their VPC CIDR. Also, if they are using NAT determine if it is dynamic or 1:1, and create the iptables accordingly.
-if [ "$NAT" == "disabled" ]
+if [ "$NAT" == "disable" ]
 then
         LEFTSUBNET=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region us-west-2 --query 'Vpcs[*].[CidrBlock]' --output text)
 else
@@ -72,7 +72,7 @@ aws ec2 create-route --region $REGION --route-table-id $1 --destination-cidr-blo
 }
 
 # List the security group ids for this VPC
-security_groups=$(aws ec2 describe-security-groups --region ${REGION} --query 'Securitygroups[*].[VpcId==`'${VPC}'`,GroupId]' --output text | grep True | awk '{print $2}')
+security_groups=$(aws ec2 describe-security-groups --region ${REGION} --query 'SecurityGroups[*].[VpcId==`'${VPC}'`,GroupId]' --output text | grep True | awk '{print $2}')
 
 # Update SGs to allow traffic from another SG
 update_sg () {
@@ -130,8 +130,8 @@ conn $NAME
 	left=%defaultroute
 	right=$PEER
 	rekeyfuzz=0%
-	ikelifetime=$P1LIFE
-	lifetime=$P2LIFE
+	ikelifetime=${P1LIFE}h
+	lifetime=${P2LIFE}h
 	esp=${ESP}!
 	ike=${IKE}!
 	leftsubnet=0.0.0.0/0
@@ -157,8 +157,8 @@ conn $NAME
 	left=%defaultroute
 	right=$PEER
 	rekeyfuzz=0%
-	ikelifetime=$P1LIFE
-	lifetime=$P2LIFE
+	ikelifetime=${P1LIFE}
+	lifetime=${P2LIFE}
 	esp=${ESP}!
 	ike=${IKE}!
 	leftsubnet=$LEFTSUBNET
