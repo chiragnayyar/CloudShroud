@@ -168,6 +168,8 @@ conn $NAME
 	dpddelay=10s
 	dpdtimeout=30s
 	dpdaction=clear
+	mark=50
+	leftupdown="/etc/strongswan/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
 			
