@@ -613,7 +613,10 @@
 								"ec2:DescribeVpcs",
 								"ec2:CreateRoute",
 								"ec2:RevokeSecurityGroupIngress",
-								"ec2:DeleteRoute"
+								"ec2:DeleteRoute",
+								"cloudwatch:GetMetricStatistics",
+								"cloudwatch:ListMetrics",
+								"cloudwatch:PutMetricData"
 							],
 							"Resource": "*"
 						}
