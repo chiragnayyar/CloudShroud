@@ -123,13 +123,14 @@ then
   cat <<EOF > $CONFIG
 conn $NAME
 	keyexchange=$IKEVERSION
-	auto=start
+	auto=add
 	type=tunnel
 	authby=secret
 	leftid=$MY_EIP
 	left=%defaultroute
 	right=$PEER
 	rekeyfuzz=0%
+	rekeymargin=2m
 	ikelifetime=${P1LIFE}h
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
@@ -150,13 +151,14 @@ then
 		cat <<EOF > $CONFIG
 conn $NAME
 	keyexchange=$IKEVERSION
-	auto=start
+	auto=add
 	type=tunnel
 	authby=secret
 	leftid=$MY_EIP
 	left=%defaultroute
 	right=$PEER
 	rekeyfuzz=0%
+	rekeymargin=2m
 	ikelifetime=${P1LIFE}h
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
@@ -166,7 +168,6 @@ conn $NAME
 	dpddelay=10s
 	dpdtimeout=30s
 	dpdaction=clear
-	leftupdown="/etc/strongswan/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
 			
