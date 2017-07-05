@@ -1,13 +1,13 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "CloudShroud is a helper CF template which will launch and automate the setup of a Strongswan EC2 to act as a VPN endpoint to your VPC.",
+	"Description": "CloudShroud is a helper CF template which will launch and automate the setup of a *swan EC2 to act as a VPN endpoint to your VPC.",
 	"Metadata": {
 		"AWS::CloudFormation::Interface": {
 			"ParameterGroups": [{
 					"Label": {
 						"default": "General VPC Configuration"
 					},
-					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "StrongswanSubnet", "KeyName", "SSHSourceIP"]
+					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP"]
 				}, {
 					"Label": {
 						"default": "Phase 1 IKE Settings (optional)"
@@ -29,13 +29,13 @@
 
 			"ParameterLabels": {
 				"InstanceType": {
-					"default": "Strongswan EC2 type"
+					"default": "*swan EC2 type"
 				},
 				"VPCID": {
 					"default": "Deployment VPC"
 				},
-				"StrongswanSubnet": {
-					"default": "The public subnet to deploy Strongswan EC2"
+				"SwanSubnet": {
+					"default": "The public subnet to deploy *swan EC2"
 				},
 				"KeyName": {
 					"default": "The SSH key pair"
@@ -101,13 +101,13 @@
 
 	"Parameters": {
 		"KeyName": {
-			"Description": "Name of an existing EC2 KeyPair to SSH into Strongswan with",
+			"Description": "Name of an existing EC2 KeyPair to SSH with",
 			"Default": "MyKey",
 			"Type": "AWS::EC2::KeyPair::KeyName",
 			"ConstraintDescription": "must be the name of an existing EC2 KeyPair."
 		},
 		"InstanceType": {
-			"Description": "Pick the Strongswan instance type.",
+			"Description": "Pick the *swan instance type.",
 			"Type": "String",
 			"Default": "t2.small",
 			"AllowedValues": ["t2.micro", "t2.small", "t2.medium", "t2.large", "t2.xlarge", "t2.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "g2.8xlarge", "r4.large", "r4.xlarge", "r4.2xlarge", "r4.4xlarge", "r4.8xlarge", "r4.16xlarge", "r3.large", "r3.xlarge", "r3.4xlarge", "r3.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge",
@@ -116,7 +116,7 @@
 			"ConstraintDescription": "must be a valid EC2 type."
 		},
 		"TerminatePro": {
-			"Description": "It's advisable to leave this to 'True'. If you have this feature enabled it will help prevent from accidently terminating your Strongswan server without further disabling the protection.",
+			"Description": "It's advisable to leave this to 'True'. If you have this feature enabled it will help prevent from accidently terminating your Swan server without further disabling the protection.",
 			"Type": "String",
 			"Default": "True",
 			"AllowedValues": ["True", "False"]
@@ -131,12 +131,12 @@
 			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
 		},
 		"VPCID": {
-			"Description": "This is the VPC that you want to launch Strongswan in. NOTE: Your VPC must have an attached Internet Gateway for this stack to successfully deploy a working VPN!",
+			"Description": "This is the VPC that you want to launch *swan in. NOTE: Your VPC must have an attached Internet Gateway for this stack to successfully deploy a working VPN!",
 			"Type": "AWS::EC2::VPC::Id",
 			"ConstraintDescription": "must choose a valid existing VPC to launch CloudShroud in."
 		},
-		"StrongswanSubnet": {
-			"Description": "Choose a public subnet in your VPC to launch Strongswan in. NOTE: This stack will not deploy properly if you choose a private subnet!",
+		"SwanSubnet": {
+			"Description": "Choose a public subnet in your VPC to launch *swan in. NOTE: This stack will not deploy properly if you choose a private subnet!",
 			"Type": "AWS::EC2::Subnet::Id"
 		},
 		"PSK": {
@@ -171,7 +171,7 @@
 			"ConstraintDescription": "You must choose a valid NAT IP(s) or network"
 		},
 		"RouteType": {
-			"Description": "You can choose whether this VPN should be 'policy-based' or 'route-based'. Default is route-based. Alternatively, you can choose a specific preset depending on what the remote peer is using for their firewall (note that this last option is still in experimental stage however).",
+			"Description": "You can choose whether this VPN should be 'policy-based' or 'route-based'. Default is route-based. Alternatively, you can choose a specific preset depending on what the remote peer is using for their firewall (note that these presets are still in experimental stage however and will be updated continually). All IKEv1/IKEv2 route-based VPNs and IKEv2 policy-based VPNs will use Strongswan, whereas all IKEv1 policy-based VPNs will use Openswan",
 			"Type": "String",
 			"Default": "route-based",
 			"AllowedValues": ["policy-based", "route-based", "cisco-asa", "cisco-ios"],
@@ -246,14 +246,14 @@
 			"ConstraintDescription": "You must choose a valid name for your VPN"
 		},
 		"LinkLocal": {
-			"Description": "The local virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it (ie. IP conflict with VPN peer)",
+			"Description": "The local virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it (ie. IP conflict with VPN peer). It's only relevant for route-based VPN.",
 			"Type": "String",
 			"Default": "169.254.13.254/30",
 			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
 			"ConstraintDescription": "You must choose a valid local VTI IP"
 		},
 		"LinkRemote": {
-			"Description": "The remote virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it",
+			"Description": "The remote virtual tunnel interface (VTI) IP. You can leave this as default unless there is a specific reason to change it. It's only relevant for route-based VPN.",
 			"Type": "String",
 			"Default": "169.254.13.253/30",
 			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
@@ -264,61 +264,61 @@
 	"Mappings": {
 		"RegionMap": {
 			"us-east-1": {
-				"Strongswan": "ami-7694ad60"
+				"Strongswan": "ami-7694ad60", "Openswan" : "ami-54d2e842"
 			},
 			"us-west-1": {
-				"Strongswan": "ami-3a5e715a"
+				"Strongswan": "ami-3a5e715a", "Openswan" : "ami-49002f29"
 			},
 			"us-west-2": {
-				"Strongswan": "ami-0a081873"
+				"Strongswan": "ami-0a081873", "Openswan" : "ami-6f736016"
 			},
 			"eu-west-1": {
-				"Strongswan": "ami-a98f69d0"
+				"Strongswan": "ami-a98f69d0", "Openswan" : "ami-3d927344"
 			},
 			"eu-west-2": {
-				"Strongswan": "ami-70d0c614"
+				"Strongswan": "ami-70d0c614", "Openswan" : "ami-6ac2d40e"
 			},
 			"us-east-2": {
-				"Strongswan": "ami-210d2c44"
+				"Strongswan": "ami-210d2c44", "Openswan" : "ami-f4183991"
 			},
 			"ap-southeast-1": {
-				"Strongswan": "ami-7d870c1e"
+				"Strongswan": "ami-7d870c1e", "Openswan" : "ami-99ec66fa"
 			},
 			"ap-southeast-2": {
-				"Strongswan": "ami-ba7e6cd9"
+				"Strongswan": "ami-ba7e6cd9", "Openswan" : "ami-0dd7c56e"
 			},
 			"ap-northeast-1": {
-				"Strongswan": "ami-bcd2cfdb"
+				"Strongswan": "ami-bcd2cfdb", "Openswan" : "ami-5e819d39"
 			},
 			"ap-northeast-2": {
-				"Strongswan": "ami-0465ba6a"
+				"Strongswan": "ami-0465ba6a", "Openswan" : "ami-5486583a"
 			},
 			"sa-east-1": {
-				"Strongswan": "ami-c1d3b9ad"
+				"Strongswan": "ami-c1d3b9ad", "Openswan" : "ami-14017478"
 			},
 			"eu-central-1": {
-				"Strongswan": "ami-64eb4b0b"
+				"Strongswan": "ami-64eb4b0b", "Openswan" : "ami-8e8f2fe1"
 			},
 			"ca-central-1": {
-				"Strongswan": "ami-69833c0d"
+				"Strongswan": "ami-69833c0d", "Openswan" : "ami-c2803fa6"
 			},
 			"ap-south-1": {
-				"Strongswan": "ami-74f7891b"
+				"Strongswan": "ami-74f7891b", "Openswan" : "ami-f8d2ac97"
 			}
 
 		}
 	},
 	"Resources": {
-		"StrongswanEip": {
+		"swanEIP": {
 			"Type": "AWS::EC2::EIP",
 			"Properties": {
 				"Domain": "vpc",
 				"InstanceId": {
-					"Ref": "StrongswanEC2"
+					"Ref": "swanEC2"
 				}
 			}
 		},
-		"StrongswanEC2": {
+		"swanEC2": {
 			"Type": "AWS::EC2::Instance",
 			"Metadata": {
 				"AWS::CloudFormation::Init": {
@@ -328,13 +328,13 @@
 
 					"Install": {
 						"files": {
-							"/etc/strongswan/setup": {
+							"/etc/cloudshroud/setup": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup",
 								"mode": "000755",
 								"user": "root",
 								"group": "root"
 							},
-							"/etc/strongswan/aws.updown": {
+							"/etc/cloudshroud/aws.updown": {
 								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/aws.updown",
 								"mode": "000755",
 								"user": "root",
@@ -350,7 +350,7 @@
 						},
 						"commands": {
 							"setvpc": {
-								"command": "echo VPC=\"$VPC\" >> /etc/strongswan/variables",
+								"command": "echo VPC=\"$VPC\" >> /etc/cloudshroud/variables",
 								"env": {
 									"VPC": {
 										"Ref": "VPCID"
@@ -358,7 +358,7 @@
 								}
 							},
 							"setregion": {
-								"command": "echo REGION=\"$REGION\" >> /etc/strongswan/variables",
+								"command": "echo REGION=\"$REGION\" >> /etc/cloudshroud/variables",
 								"env": {
 									"REGION": {
 										"Ref": "AWS::Region"
@@ -367,7 +367,7 @@
 								}
 							},
 							"setonprem": {
-								"command": "echo ONPREM=\"'${ONPREM}'\" >> /etc/strongswan/variables",
+								"command": "echo ONPREM=\"'${ONPREM}'\" >> /etc/cloudshroud/variables",
 								"env": {
 									"ONPREM": {
 										"Ref": "RemoteNet"
@@ -376,7 +376,7 @@
 								}
 							},
 							"setnat": {
-								"command": "echo NAT=\"'${NAT}'\" >> /etc/strongswan/variables",
+								"command": "echo NAT=\"'${NAT}'\" >> /etc/cloudshroud/variables",
 								"env": {
 									"NAT": {
 										"Ref": "LocalNATNet"
@@ -385,7 +385,7 @@
 								}
 							},
 							"setroutetype": {
-								"command": "echo TYPE=\"$TYPE\" >> /etc/strongswan/variables",
+								"command": "echo TYPE=\"$TYPE\" >> /etc/cloudshroud/variables",
 								"env": {
 									"TYPE": {
 										"Ref": "RouteType"
@@ -393,7 +393,7 @@
 								}
 							},
 							"setpfs": {
-								"command": "echo PFS=\"$PFS\" >> /etc/strongswan/variables",
+								"command": "echo PFS=\"$PFS\" >> /etc/cloudshroud/variables",
 								"env": {
 									"PFS": {
 										"Ref": "PFS"
@@ -401,7 +401,7 @@
 								}
 							},
 							"setenc": {
-								"command": "echo P2ENC=\"$P2ENC\" >> /etc/strongswan/variables",
+								"command": "echo P2ENC=\"$P2ENC\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P2ENC": {
 										"Ref": "Phase2Enc"
@@ -409,7 +409,7 @@
 								}
 							},
 							"sethash": {
-								"command": "echo P2HASH=\"$P2HASH\" >> /etc/strongswan/variables",
+								"command": "echo P2HASH=\"$P2HASH\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P2HASH": {
 										"Ref": "Phase2Int"
@@ -418,7 +418,7 @@
 							},
 
 							"setpsk": {
-								"command": "echo PSK=\"'$PSK'\" >> /etc/strongswan/variables",
+								"command": "echo PSK=\"'$PSK'\" >> /etc/cloudshroud/variables",
 								"env": {
 									"PSK": {
 										"Ref": "PSK"
@@ -427,7 +427,7 @@
 
 							},
 							"setpeer": {
-								"command": "echo PEER=\"$PEER\" >> /etc/strongswan/variables",
+								"command": "echo PEER=\"$PEER\" >> /etc/cloudshroud/variables",
 								"env": {
 									"PEER": {
 										"Ref": "RemotePeer"
@@ -436,15 +436,15 @@
 
 							},
 							"setsgid": {
-								"command": "echo SG_ID=\"$SG_ID\" >> /etc/strongswan/variables",
+								"command": "echo SG_ID=\"$SG_ID\" >> /etc/cloudshroud/variables",
 								"env": {
 									"SG_ID": {
-										"Ref": "StrongswanSg"
+										"Ref": "swanSg"
 									}
 								}
 							},
 							"setname": {
-								"command": "echo NAME=\"$NAME\" >> /etc/strongswan/variables",
+								"command": "echo NAME=\"$NAME\" >> /etc/cloudshroud/variables",
 								"env": {
 									"NAME": {
 										"Ref": "VPNName"
@@ -452,7 +452,7 @@
 								}
 							},
 							"setlinklocal": {
-								"command": "echo LINKLOCAL=\"$LL\" >> /etc/strongswan/variables",
+								"command": "echo LINKLOCAL=\"$LL\" >> /etc/cloudshroud/variables",
 								"env": {
 									"LL": {
 										"Ref": "LinkLocal"
@@ -460,7 +460,7 @@
 								}
 							},
 							"setlinkremote": {
-								"command": "echo LINKREMOTE=\"$LR\" >> /etc/strongswan/variables",
+								"command": "echo LINKREMOTE=\"$LR\" >> /etc/cloudshroud/variables",
 								"env": {
 									"LR": {
 										"Ref": "LinkRemote"
@@ -468,7 +468,7 @@
 								}
 							},
 							"setikeversion": {
-								"command": "echo IKEVERSION=\"$IKEVERSION\" >> /etc/strongswan/variables",
+								"command": "echo IKEVERSION=\"$IKEVERSION\" >> /etc/cloudshroud/variables",
 								"env": {
 									"IKEVERSION": {
 										"Ref": "IKEversion"
@@ -476,7 +476,7 @@
 								}
 							},
 							"setikeenc": {
-								"command": "echo P1ENC=\"$P1ENC\" >> /etc/strongswan/variables",
+								"command": "echo P1ENC=\"$P1ENC\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P1ENC": {
 										"Ref": "IKEenc"
@@ -484,7 +484,7 @@
 								}
 							},
 							"setikeint": {
-								"command": "echo P1INT=\"$P1INT\" >> /etc/strongswan/variables",
+								"command": "echo P1INT=\"$P1INT\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P1INT": {
 										"Ref": "IKEint"
@@ -492,7 +492,7 @@
 								}
 							},
 							"setikelifetime": {
-								"command": "echo P1LIFE=\"$P1LIFE\" >> /etc/strongswan/variables",
+								"command": "echo P1LIFE=\"$P1LIFE\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P1LIFE": {
 										"Ref": "IKELifetime"
@@ -500,7 +500,7 @@
 								}
 							},
 							"setp2lifetime": {
-								"command": "echo P2LIFE=\"$P2LIFE\" >> /etc/strongswan/variables",
+								"command": "echo P2LIFE=\"$P2LIFE\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P2LIFE": {
 										"Ref": "Phase2Lifetime"
@@ -508,7 +508,7 @@
 								}
 							},
 							"setikedhgroup": {
-								"command": "echo P1DHGROUP=\"$P1DHGROUP\" >> /etc/strongswan/variables",
+								"command": "echo P1DHGROUP=\"$P1DHGROUP\" >> /etc/cloudshroud/variables",
 								"env": {
 									"P1DHGROUP": {
 										"Ref": "IKEDhGroup"
@@ -517,7 +517,10 @@
 							},
 
 							"startscript": {
-								"command": "bash /etc/strongswan/setup"
+								"command": "bash /etc/cloudshroud/setup"
+							},
+							"startstrolgswan": {
+								"command": "service ipsec restart"
 							},
 							"startstrongswan": {
 								"command": "strongswan restart"
@@ -538,12 +541,15 @@
 					"Fn::Base64": {
 						"Fn::Join": ["", [
 								"#!/bin/bash -xe\n",
+								"# Create cloudshroud directory\n",
+								"mkdir /etc/cloudshroud/\n",
+								"chown root:root /etc/cloudshroud/\n",
 								"# Create variables file from EC2 metadata\n",
 								"/opt/aws/bin/cfn-init -v ",
 								"         --stack ", {
 									"Ref": "AWS::StackName"
 								},
-								"         --resource StrongswanEC2 ",
+								"         --resource swanEC2 ",
 								"         --configsets Install ",
 								"         --region ", {
 									"Ref": "AWS::Region"
@@ -556,15 +562,21 @@
 				},
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
-					"Fn::FindInMap": ["RegionMap", {
+					"Fn::If" :
+					["RouteBasedOrIKEv2", 
+					{"Fn::FindInMap": ["RegionMap", {
 							"Ref": "AWS::Region"
-						}, "Strongswan"]
+					}, "Strongswan"]},
+					{"Fn::FindInMap": ["RegionMap", {
+							"Ref": "AWS::Region"
+					}, "Openswan"]}
+						]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
 				},
 				"IamInstanceProfile": {
-					"Ref": "StrongswanInstanceProfile"
+					"Ref": "swanInstanceProfile"
 				},
 				"SourceDestCheck": "false",
 				"KeyName": {
@@ -573,19 +585,19 @@
 				"Monitoring": "false",
 				"Tags": [{
 						"Key": "Name",
-						"Value": "StrongswanEc2"
+						"Value": "swanEC2"
 					}
 				],
 				"NetworkInterfaces": [{
 						"AssociatePublicIpAddress": "False",
 						"DeleteOnTermination": "true",
-						"Description": "Interface of Strongswan Ec2",
+						"Description": "Interface of swan Ec2",
 						"DeviceIndex": 0,
 						"SubnetId": {
-							"Ref": "StrongswanSubnet"
+							"Ref": "SwanSubnet"
 						},
 						"GroupSet": [{
-								"Ref": "StrongswanSg"
+								"Ref": "swanSg"
 							}
 						]
 					}
@@ -594,14 +606,14 @@
 			}
 		},
 
-		"StrongswanIAMPolicy": {
+		"swanIAMPolicy": {
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"Roles": [{
-						"Ref": "StrongswanIAMRole"
+						"Ref": "swanIAMRole"
 					}
 				],
-				"PolicyName": "StrongswanAPIaccess",
+				"PolicyName": "swanAPIaccess",
 				"PolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [{
@@ -625,7 +637,7 @@
 				}
 			}
 		},
-		"StrongswanIAMRole": {
+		"swanIAMRole": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
 				"AssumeRolePolicyDocument": {
@@ -643,39 +655,39 @@
 			}
 		},
 
-		"StrongswanInstanceProfile": {
+		"swanInstanceProfile": {
 			"Type": "AWS::IAM::InstanceProfile",
 			"Properties": {
 				"Path": "/",
 				"Roles": [{
-						"Ref": "StrongswanIAMRole"
+						"Ref": "swanIAMRole"
 					}
 				]
 			}
 		},
 
-		"StrongswanSg": {
-			"DependsOn": ["StrongswanIAMPolicy", "StrongswanIAMRole", "StrongswanInstanceProfile"],
+		"swanSg": {
+			"DependsOn": ["swanIAMPolicy", "swanIAMRole", "swanInstanceProfile"],
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
-				"GroupDescription": "Security group used by Strongswan EC2",
+				"GroupDescription": "Security group used by swan EC2",
 				"VpcId": {
 					"Ref": "VPCID"
 				}
 			}
 		},
 
-		"StrongswanEipAssoc": {
+		"swanEIPAssoc": {
 			"Type": "AWS::EC2::EIPAssociation",
 			"Properties": {
 				"AllocationId": {
 					"Fn::GetAtt": [
-						"StrongswanEip",
+						"swanEIP",
 						"AllocationId"
 					]
 				},
 				"InstanceId": {
-					"Ref": "StrongswanEC2"
+					"Ref": "swanEC2"
 				}
 			}
 		},
@@ -684,7 +696,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "StrongswanSg"
+					"Ref": "swanSg"
 				},
 				"IpProtocol": "tcp",
 				"FromPort": "22",
@@ -698,7 +710,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "StrongswanSg"
+					"Ref": "swanSg"
 				},
 				"IpProtocol": "50",
 				"CidrIp": {
@@ -712,7 +724,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "StrongswanSg"
+					"Ref": "swanSg"
 				},
 				"IpProtocol": "udp",
 				"FromPort": "4500",
@@ -728,7 +740,7 @@
 			"Type": "AWS::EC2::SecurityGroupIngress",
 			"Properties": {
 				"GroupId": {
-					"Ref": "StrongswanSg"
+					"Ref": "swanSg"
 				},
 				"IpProtocol": "udp",
 				"FromPort": "500",
@@ -743,17 +755,26 @@
 	},
 	"Conditions": {
 		"RouteBased": {
-			"Fn::Equals": [{
-					"Ref": "RouteType"
-				},
-				"route-based"]
+			"Fn::Or" : [
+			{"Fn::Equals" : ["cisco-ios", {"Ref":"RouteType"}]},
+				{"Fn::Equals" : ["route-based", {"Ref":"RouteType"}]}
+			]
 		},
+		"RouteBasedOrIKEv2": {
+			"Fn::Or" : [
+			{"Fn::Equals" : ["ikev2", {"Ref":"IKEversion"}]},
+			{"Fn::Equals" : ["route-based", {"Ref":"RouteType"}]},
+			{"Fn::Equals" : ["cisco-ios", {"Ref":"RouteType"}]}
+			
+		},
+		
+		
 		"PFSenabled": {
 			"Fn::Not": [{
 					"Fn::Equals": [{
 							"Ref": "PFS"
 						},
-						"Skip"]
+						"Disable"]
 				}
 			]
 		},
@@ -761,15 +782,15 @@
 			"Fn::Equals": [{
 					"Ref": "PFS"
 				},
-				"Skip"]
+				"Disable"]
 		}
 	},
 
 	"Outputs": {
-		"Strongswan": {
-			"Description": "The public IP of your Strongswan VPN endpoint.",
+		"VPNendpoint": {
+			"Description": "The public IP of your *swan VPN endpoint.",
 			"Value": {
-				"Fn::GetAtt": ["StrongswanEC2", "PublicIp"]
+				"Fn::GetAtt": ["swanEC2", "PublicIp"]
 			}
 		},
 		"AWSTunnelVtiIp": {
