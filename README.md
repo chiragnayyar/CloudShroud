@@ -63,20 +63,20 @@ After launching the CloudShroud template, and it completes deployment you can SS
 This public IP will be used to SSH into the server as well the IP that your remote partner will use to establish the VPN with your AWS VPC.
 
 #### To SSH into your swan EC2
-sudo ssh -i (private key) ec2-user@(public IP of swan ec2)<br />
+sudo ssh -i MyPrivateKey.pem ec2-user@\<PUBLIC IP OF SWAN EC2\><br />
 
 #### Helpful server commands
 - To restart the VPN service<br />
 (strongswan) sudo strongswan restart<br />
 (openswan) sudo service ipsec restart<br />
-<br />
+
 - To see general phase1/phase2 VPN debug<br />
 (strongswan) sudo strongswan statusall<br />
 (openswan) sudo ipsec auto --status<br />
-<br />
+
 - To see child SAs that formed between the peers (for both strongswan and openswan)<br />
 sudo ip xfrm state<br />
-<br />
+
 - Further debug info<br />
 sudo tail /var/log/secure<br />
 sudo tail /var/log/messages<br />
