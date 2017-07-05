@@ -142,6 +142,7 @@ conn $NAME
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
 	ike=${IKE}!
+	keyingtries=%forever
 	leftsubnet=0.0.0.0/0
 	rightsubnet=0.0.0.0/0
 	dpddelay=10s
@@ -168,6 +169,7 @@ conn $NAME
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
 	ike=${IKE}!
+	keyingtries=%forever
 	leftsubnet=$LEFTSUBNET
 	rightsubnet=$ONPREM
 	dpddelay=10s
@@ -194,7 +196,7 @@ conn $NAME
         phase2alg=$ESP
         phase2=esp
         ike=$IKE
-        keyingtries=3
+        keyingtries=%forever
         leftsubnets={$LEFTSUBNET}
         rightsubnets={$ONPREM}
 EOF
