@@ -18,9 +18,9 @@ NAT=$(echo ${NAT//[[:blank:]]/})
 NAT=$(echo "$NAT" | tr '[:upper:]' '[:lower:]')
 
 # Detect if user wants to NAT their traffic. If they do, then set the NAT to their local LEFTSUBNET=, otherwise use their VPC CIDR. Also, if they are using NAT determine if it is dynamic or 1:1, and create the iptables accordingly.
-if [ "$NAT" == "disable" ]
+if [ "$NAT" == "Disable" ]
 then
-        LEFTSUBNET=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region us-west-2 --query 'Vpcs[*].[CidrBlock]' --output text)
+        LEFTSUBNET=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region ${REGION} --query 'Vpcs[*].[CidrBlock]' --output text)
 else
         if [[ "$NAT" =~ [,]+ ]]
         then
@@ -45,7 +45,7 @@ else
 				done
         else
                 LEFTSUBNET=$NAT
-				VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region us-west-2 --query 'Vpcs[*].[CidrBlock]' --output text)
+				VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region ${REGION} --query 'Vpcs[*].[CidrBlock]' --output text)
 				for NET in $(echo $ONPREM | sed "s/,/\n/g");do
 					iptables -t nat -A POSTROUTING -s $VPC_CIDR -d $NET -j NETMAP --to $NAT
 					iptables -t nat -A PREROUTING -d $NAT -j NETMAP --to $VPC_CIDR
