@@ -264,46 +264,60 @@
 	"Mappings": {
 		"RegionMap": {
 			"us-east-1": {
-				"Strongswan": "ami-7694ad60", "Openswan" : "ami-54d2e842"
+				"Strongswan": "ami-7694ad60",
+				"Openswan": "ami-54d2e842"
 			},
 			"us-west-1": {
-				"Strongswan": "ami-3a5e715a", "Openswan" : "ami-49002f29"
+				"Strongswan": "ami-3a5e715a",
+				"Openswan": "ami-49002f29"
 			},
 			"us-west-2": {
-				"Strongswan": "ami-0a081873", "Openswan" : "ami-6f736016"
+				"Strongswan": "ami-0a081873",
+				"Openswan": "ami-6f736016"
 			},
 			"eu-west-1": {
-				"Strongswan": "ami-a98f69d0", "Openswan" : "ami-3d927344"
+				"Strongswan": "ami-a98f69d0",
+				"Openswan": "ami-3d927344"
 			},
 			"eu-west-2": {
-				"Strongswan": "ami-70d0c614", "Openswan" : "ami-6ac2d40e"
+				"Strongswan": "ami-70d0c614",
+				"Openswan": "ami-6ac2d40e"
 			},
 			"us-east-2": {
-				"Strongswan": "ami-210d2c44", "Openswan" : "ami-f4183991"
+				"Strongswan": "ami-210d2c44",
+				"Openswan": "ami-f4183991"
 			},
 			"ap-southeast-1": {
-				"Strongswan": "ami-7d870c1e", "Openswan" : "ami-99ec66fa"
+				"Strongswan": "ami-7d870c1e",
+				"Openswan": "ami-99ec66fa"
 			},
 			"ap-southeast-2": {
-				"Strongswan": "ami-ba7e6cd9", "Openswan" : "ami-0dd7c56e"
+				"Strongswan": "ami-ba7e6cd9",
+				"Openswan": "ami-0dd7c56e"
 			},
 			"ap-northeast-1": {
-				"Strongswan": "ami-bcd2cfdb", "Openswan" : "ami-5e819d39"
+				"Strongswan": "ami-bcd2cfdb",
+				"Openswan": "ami-5e819d39"
 			},
 			"ap-northeast-2": {
-				"Strongswan": "ami-0465ba6a", "Openswan" : "ami-5486583a"
+				"Strongswan": "ami-0465ba6a",
+				"Openswan": "ami-5486583a"
 			},
 			"sa-east-1": {
-				"Strongswan": "ami-c1d3b9ad", "Openswan" : "ami-14017478"
+				"Strongswan": "ami-c1d3b9ad",
+				"Openswan": "ami-14017478"
 			},
 			"eu-central-1": {
-				"Strongswan": "ami-64eb4b0b", "Openswan" : "ami-8e8f2fe1"
+				"Strongswan": "ami-64eb4b0b",
+				"Openswan": "ami-8e8f2fe1"
 			},
 			"ca-central-1": {
-				"Strongswan": "ami-69833c0d", "Openswan" : "ami-c2803fa6"
+				"Strongswan": "ami-69833c0d",
+				"Openswan": "ami-c2803fa6"
 			},
 			"ap-south-1": {
-				"Strongswan": "ami-74f7891b", "Openswan" : "ami-f8d2ac97"
+				"Strongswan": "ami-74f7891b",
+				"Openswan": "ami-f8d2ac97"
 			}
 
 		}
@@ -562,15 +576,17 @@
 				},
 				"InstanceInitiatedShutdownBehavior": "stop",
 				"ImageId": {
-					"Fn::If" :
-					["RouteBasedOrIKEv2", 
-					{"Fn::FindInMap": ["RegionMap", {
-							"Ref": "AWS::Region"
-					}, "Strongswan"]},
-					{"Fn::FindInMap": ["RegionMap", {
-							"Ref": "AWS::Region"
-					}, "Openswan"]}
-						]
+					"Fn::If":
+					["RouteBasedOrIKEv2", {
+							"Fn::FindInMap": ["RegionMap", {
+									"Ref": "AWS::Region"
+								}, "Strongswan"]
+						}, {
+							"Fn::FindInMap": ["RegionMap", {
+									"Ref": "AWS::Region"
+								}, "Openswan"]
+						}
+					]
 				},
 				"InstanceType": {
 					"Ref": "InstanceType"
@@ -755,20 +771,40 @@
 	},
 	"Conditions": {
 		"RouteBased": {
-			"Fn::Or" : [
-			{"Fn::Equals" : ["cisco-ios", {"Ref":"RouteType"}]},
-				{"Fn::Equals" : ["route-based", {"Ref":"RouteType"}]}
+			"Fn::Or": [{
+					"Fn::Equals": ["cisco-ios", {
+							"Ref": "RouteType"
+						}
+					]
+				}, {
+					"Fn::Equals": ["route-based", {
+							"Ref": "RouteType"
+						}
+					]
+				}
 			]
 		},
 		"RouteBasedOrIKEv2": {
-			"Fn::Or" : [
-			{"Fn::Equals" : ["ikev2", {"Ref":"IKEversion"}]},
-			{"Fn::Equals" : ["route-based", {"Ref":"RouteType"}]},
-			{"Fn::Equals" : ["cisco-ios", {"Ref":"RouteType"}]}
-			
+			"Fn::Or": [{
+					"Fn::Equals": ["ikev2", {
+							"Ref": "IKEversion"
+						}
+					]
+				}, {
+					"Fn::Equals": ["route-based", {
+							"Ref": "RouteType"
+						}
+					]
+				}, {
+					"Fn::Equals": ["cisco-ios", {
+							"Ref": "RouteType"
+						}
+					]
+				}
+			]
+
 		},
-		
-		
+
 		"PFSenabled": {
 			"Fn::Not": [{
 					"Fn::Equals": [{
