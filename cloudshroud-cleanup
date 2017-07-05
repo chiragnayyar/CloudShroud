@@ -15,7 +15,7 @@
 ### END INIT INFO
 
 # Import CloudShroud variables
-source /etc/strongswan/variables
+source /etc/cloudshroud/variables
 
 # Import status codes
 source /etc/init.d/functions
