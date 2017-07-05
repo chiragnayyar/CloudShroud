@@ -203,7 +203,7 @@ fi
 
 # Create PSK file
 cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
-$PEER : PSK "${PSK}"
+%any $PEER : PSK "${PSK}"
 EOF
 chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 
