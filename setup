@@ -178,7 +178,7 @@ conn $NAME
 EOF
 chmod 644 $CONFIG
 
-elif [ "$TYPE" == "policy-based" ] || "$TYPE" == "cisco-asa" ] && [ "$IKEVERSION" == "ikev1" ] # user chose policy-based AND ikev1 (use openswan)
+elif [ "$TYPE" == "policy-based" ] || [ "$TYPE" == "cisco-asa" ] && [ "$IKEVERSION" == "ikev1" ] # user chose policy-based AND ikev1 (use openswan)
 then
 		cat <<EOF > $CONFIG
 conn $NAME
