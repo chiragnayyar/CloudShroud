@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# This script will go through and configure Strongswan according to users input in Cloudformation parameters. 
+# This script will go through and configure *swan according to users input in Cloudformation parameters. 
 
 # Get userdata and variables
-source /etc/strongswan/variables
+source /etc/cloudshroud/variables
 MY_EIP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 MY_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
-echo "MY_ID=$MY_ID" >> /etc/strongswan/variables
+echo "MY_ID=$MY_ID" >> /etc/cloudshroud/variables
 
-# Map user friendly DH group to Strongswan keyword
+# Map user friendly DH group to swan keyword
 declare -A pfsgroups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="modp2048" ["Group15"]="modp3072" ["Group16"]="modp4096" ["Group17"]="modp6144" ["Group18"]="modp8192" ["Group22"]="modp1024s160" ["Group23"]="modp2048s224" ["Group24"]="modp2048s256" ["Group25"]="ecp192" ["Group26"]="ecp224" ["Group19"]="ecp256" ["Group20"]="ecp384" ["Group21"]="ecp521" ["Group27"]="ecp224bp" ["Group28"]="ecp256bp" ["Group29"]="ecp384bp" ["Group30"]="ecp512bp" )
 declare -A ikegroups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="modp2048" ["Group15"]="modp3072" ["Group16"]="modp4096" ["Group17"]="modp6144" ["Group18"]="modp8192" ["Group22"]="modp1024s160" ["Group23"]="modp2048s224" ["Group24"]="modp2048s256" ["Group25"]="ecp192" ["Group26"]="ecp224" ["Group19"]="ecp256" ["Group20"]="ecp384" ["Group21"]="ecp521" ["Group27"]="ecp224bp" ["Group28"]="ecp256bp" ["Group29"]="ecp384bp" ["Group30"]="ecp512bp" )
 
@@ -57,7 +57,7 @@ echo "# Load these iptables rules >> /etc/rc.local"
 echo "iptables-restore < /etc/iptables.conf" >> /etc/rc.local
 
 
-#This next section will update all the relevant SGs and VPC route tables in this VPC, so that EC2s can openly communication via the Strongswan box
+#This next section will update all the relevant SGs and VPC route tables in this VPC, so that EC2s can openly communication via the swan box
 # Get all the route table ids in this VPC
 route_tables=$(aws ec2 describe-route-tables --region ${REGION} --query 'RouteTables[*].[VpcId==`'${VPC}'`,RouteTableId]' --output text | grep True | awk '{print $2}')
 
@@ -108,29 +108,36 @@ for sg in $security_groups; do
 	update_sg $SG_ID $sg
 done
 
-# Create the IPSEC config file for strongswan
-CONFIG="/etc/strongswan/${NAME}.vpn.conf"
-if [ "$PFS" != "Disable" ]
+# Create the IPSEC config file for swan
+CONFIG="/etc/cloudshroud/${NAME}.vpn.conf"
+if [ "$PFS" != "Disable" ] && [ "$IKEVERSION" == "ikev2" ]
 then
 	ESP="${P2ENC}-${P2HASH}-${pfsgroups[${PFS}]}"
+elif [ "$PFS" != "Disable" ] && [ "$IKEVERSION" == "ikev1" ]
+then
+	ESP="${P2ENC}-${P2HASH};${pfsgroups[${PFS}]}"
 else
 	ESP="${P2ENC}-${P2HASH}"
 fi
-IKE="${P1ENC}-${P1INT}-${ikegroups[${P1DHGROUP}]}"
+
+if [ "$IKEVERSION" == "ikev2" ]
+then
+	IKE="${P1ENC}-${P1INT}-${ikegroups[${P1DHGROUP}]}"
+else
+	IKE="${P1ENC}-${P1INT};${ikegroups[${P1DHGROUP}]}"
+fi
 
 if [ "$TYPE" == "route-based" ] || [ "$TYPE" == "cisco-ios" ] # if user chose route-based VPN 
 then
   cat <<EOF > $CONFIG
 conn $NAME
 	keyexchange=$IKEVERSION
-	auto=add
+	auto=start
 	type=tunnel
 	authby=secret
 	leftid=$MY_EIP
 	left=%defaultroute
 	right=$PEER
-	rekeyfuzz=0%
-	rekeymargin=2m
 	ikelifetime=${P1LIFE}h
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
@@ -141,24 +148,22 @@ conn $NAME
 	dpdtimeout=30s
 	dpdaction=clear
 	mark=50
-	leftupdown="/etc/strongswan/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
+	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
 	
 
-elif [ "$TYPE" == "policy-based" ] || [ "$TYPE" == "cisco-asa" ] # if user chose policy-based
+elif [ "$TYPE" == "policy-based" ] || [ "$TYPE" == "cisco-asa" ] && [ "$IKEVERSION" != "ikev1" ]  # if user chose policy-based and NOT ikev1
 then
 		cat <<EOF > $CONFIG
 conn $NAME
 	keyexchange=$IKEVERSION
-	auto=add
+	auto=start
 	type=tunnel
 	authby=secret
 	leftid=$MY_EIP
 	left=%defaultroute
 	right=$PEER
-	rekeyfuzz=0%
-	rekeymargin=2m
 	ikelifetime=${P1LIFE}h
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
@@ -169,17 +174,38 @@ conn $NAME
 	dpdtimeout=30s
 	dpdaction=clear
 	mark=50
-	leftupdown="/etc/strongswan/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
+	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
+
+elif [ "$TYPE" == "policy-based" ] || "$TYPE" == "cisco-asa" ] && [ "$IKEVERSION" == "ikev1" ] # user chose policy-based AND ikev1 (use openswan)
+then
+		cat <<EOF > $CONFIG
+conn $NAME
+        ikev2=no
+        auto=start
+        type=tunnel
+        authby=secret
+        leftid=$MY_EIP
+        left=%defaultroute
+        right=$PEER
+        ikelifetime=${P1LIFE}h
+        salifetime=${P2LIFE}h
+        phase2alg=$ESP
+        phase2=esp
+        ike=$IKE
+        keyingtries=3
+        leftsubnets={$LEFTSUBNET}
+        rightsubnets={$ONPREM}
+EOF
 			
 fi
 
 # Create PSK file
-cat <<EOF > /etc/strongswan/${NAME}.vpn.secrets
+cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
 $PEER : PSK "${PSK}"
 EOF
-chmod 644 /etc/strongswan/${NAME}.vpn.secrets
+chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 
 # Remove this script. It only neeeds to run once for initial setup
 rm -- "$0"
