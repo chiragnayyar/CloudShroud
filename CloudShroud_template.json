@@ -532,12 +532,12 @@
 
 							"startscript": {
 								"command": "bash /etc/cloudshroud/setup"
-							},
+							},							
 							"startstrolgswan": {
-								"command": "service ipsec restart"
+								"command": "service ipsec restart || true"
 							},
 							"startstrongswan": {
-								"command": "strongswan restart"
+								"command": "strongswan restart || true"
 							},
 							"sttcheckconfig": {
 								"command": "chkconfig --add cloudshroud-cleanup"
