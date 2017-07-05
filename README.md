@@ -12,16 +12,16 @@ features.
 
 ## Current Limitations
 - Template can only be use to create a single tunnel to a single remote site
-- CloudShroud launches a single -swan EC2 (no high-availability)
+- CloudShroud launches a single (Open|Strong)swan EC2 (no high-availability)
 
 ## Short-term feature additions
 - Tunnel monitoring through Cloudwatch
-- -swan EC2 failure detection and automatic recovery
+- (Open|Strong)swan EC2 failure detection and automatic recovery
 - Log push to S3
 - Create multiple site VPNs through Cloudformation parameter updates
 
 ## Long-term feature additions
-- High-availability -swan clustering for active/active or active/pass tunnel failover
+- High-availability (Open|Strong)swan clustering for active/active or active/pass tunnel failover
 - Routing options over HA tunnels: Equal-cost multi-pathing, stateful session tracking, round-robin load balancing
 
 ## Stack Launch Instructions
@@ -32,7 +32,7 @@ features.
 
 ## Stack Deletion Instructions
 **_VERY IMPORTANT!!_**
-The -swan EC2 runs cleanup scripts everytime that the server is stopped. BE SURE TO STOP the ec2 prior to deleting your Cloudformation stack. This will ensure that the EC2 has enough time to remove all created Security Group and VPC route table dependencies before the EC2 itself is terminated during stack deletion.
+The (Open|Strong)swan EC2 runs cleanup scripts everytime that the server is stopped. BE SURE TO STOP the ec2 prior to deleting your Cloudformation stack. This will ensure that the EC2 has enough time to remove all created Security Group and VPC route table dependencies before the EC2 itself is terminated during stack deletion.
 
 If you don't stop the EC2 prior to stack deletion it can cause the stack to hang and you will manually have to remove Security Group and VPC route table entries.
 
@@ -45,13 +45,7 @@ Most of the parameters during initial stack deployment are self-explanatory, but
 ### **VPN Routing Type**: 
 There are two very common VPN implementations, route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of device they are using. You will notice that there are some presets available (ie CiscoASA, CiscoIOS), but these are still experimental for now.
 
-If you choose to go with a policy-based VPN, the remote partner will need to bring up individual phase 2 Security Association (SA) for each repective source/destination network pair defined. 
-
-For example if you have defined 192.168.0.0/16,172.17.0.0/16 as the LANs behind the remote peer and your VPC is 10.0.0.0/16, then your partner will need to initiate traffic from a device in each of their two LANs to a EC2 in your VPC to bring up the SAs. This would bring up a total of two phase 2 SAs defined by your policy
-10.0.0.0/16 <-SA1-> 192.168.0.0/16
-10.0.0.0/16 <-SA2-> 172.17.0.0/16
-
-It's also important to note that if you choose a RouteType of 'policy-based' *AND* IKEversion 'ikev1', CloudShroud will launch an Openswan server rather than Strongswan (strongswan is used for any other implementations). Openswan seems to handle multiple child SAs with IKEv1 better than Strongswan
+It's also important to note that if you choose a RouteType of 'policy-based' (or a firewall preset that uses policy-based, such as the cisco-asa) *AND* IKEversion 'ikev1', CloudShroud will launch an Openswan server rather than Strongswan. Strongswan is used for any other implementations including IKEv1/IKEv2 route-based or IKEv2 policy-based VPN. Openswan seems to handle multiple child SAs with IKEv1 better than Strongswan, hence the exception.
 
 ### **Local NAT Host(s) or Network**: 
 You can choose to NAT your entire VPC (ie. VPC actual 10.0.0.0/16 --> VPC nat 172.16.0.0/16, etc) OR you can do a 1:1 NAT of individual IPs in your VPC. If you choose to do the latter you will need to specify each 'real' host IP in your VPC followed by the corresponding IP that you want to NAT it to. You can do this for as many hosts as you want (ie. HOST, NATIP, HOST, NATIP, etc) .
