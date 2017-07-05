@@ -32,7 +32,7 @@ while [[ $# > 1 ]]; do
 done
 
 #import any needed variables from user data
-source /etc/strongswan/variables
+source /etc/cloudshroud/variables
 ONPREM=$(echo ${ONPREM//[[:blank:]]/})
 
 command_exists() {
