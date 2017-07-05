@@ -81,3 +81,7 @@ sudo ip xfrm state<br />
 sudo tail /var/log/secure<br />
 sudo tail /var/log/messages<br />
 
+- File Locations<br />
+Most of the files specifically related to CloudShroud can be found in /etc/cloudshroud/. This includes the (open|strong)swan conf file and secrets file as well as the dependent variables file.
+
+The cleanup script that runs at boot/stop/reboot can be found in /etc/init.d/cloudshroud-cleanup. This is responsible to add SG and VPC route table entries so that your EC2 can communicate with the onprem. It will remove the entries at shutdown so that you don't manually have to do this before possible stack termination.
