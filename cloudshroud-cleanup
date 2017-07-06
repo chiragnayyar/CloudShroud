@@ -57,63 +57,67 @@ aws ec2 revoke-security-group-ingress --region $REGION --group-id $1 --protocol 
 
 
 start() {
-
-	# Loop will go through each route table in this VPC, and if there is no conflicting route for on-prem, will point on-prem route to Openswan ENI
-	for table in $route_tables;do
-		existing_rts=$(existing_routes $table | awk '{print $1}')
-		for onprem in $(echo "$ONPREM" | sed "s/,/\n/g");do	
-			conflict=0
-			for route in $existing_rts; do
-				if [ "$route" == "$onprem" ]
+	if [ $UPDATE_AWS ]
+	then
+		# Loop will go through each route table in this VPC, and if there is no conflicting route for on-prem, will point on-prem route to Openswan ENI
+		for table in $route_tables;do
+			existing_rts=$(existing_routes $table | awk '{print $1}')
+			for onprem in $(echo "$ONPREM" | sed "s/,/\n/g");do	
+				conflict=0
+				for route in $existing_rts; do
+					if [ "$route" == "$onprem" ]
+					then
+						conflict=1
+						break
+					fi
+				done
+				if [ $conflict -eq 0 ]
 				then
-					conflict=1
-					break
+					echo "NO conflict for $onprem in $table"
+					create_onprem_route $table $onprem
+				else
+					echo "conflict for $onprem in $table"
 				fi
 			done
-			if [ $conflict -eq 0 ]
-			then
-				echo "NO conflict for $onprem in $table"
-				create_onprem_route $table $onprem
-			else
-				echo "conflict for $onprem in $table"
-			fi
-		done
-	done	
+		done	
 
-	# This next loop will go through and allow all security groups in the VPC to communicate with the Openswan EC2, and vice versa
-	
-	for sg in $security_groups; do
-		update_sg $sg $SG_ID
-	done
+		# This next loop will go through and allow all security groups in the VPC to communicate with the Openswan EC2, and vice versa
+		
+		for sg in $security_groups; do
+			update_sg $sg $SG_ID
+		done
+	fi
 }
 stop() {
-	# Loop to delete SG entries
-	for sg in $security_groups; do 
-		revoke_sg $sg $SG_ID
-	done
-	
-	# Loop to delete VPC route table entries for on-prem routes *IF* those routes are pointing to our Strongswan instance.
-	for table in $route_tables;do
-		existing_rts=$(existing_routes $table)
-		existing_tgts=$(existing_targets $table)
-		routes=()
-		targets=()
-			for route in $existing_rts; do
-				routes+=( $route )
-			done
-			for target in $existing_tgts; do
-				targets+=( $target )
-			done
-			for ((i=0;i<${#routes[@]};++i)); do
-				if [ "${targets[$i]}" == "$MY_ID" ]
-				then
-					delete_onprem_route $table ${routes[$i]}
-				fi
-			done
-				
+	if [ $UPDATE_AWS ]
+	then
+		# Loop to delete SG entries
+		for sg in $security_groups; do 
+			revoke_sg $sg $SG_ID
+		done
 		
-	done
-
+		# Loop to delete VPC route table entries for on-prem routes *IF* those routes are pointing to our Strongswan instance.
+		for table in $route_tables;do
+			existing_rts=$(existing_routes $table)
+			existing_tgts=$(existing_targets $table)
+			routes=()
+			targets=()
+				for route in $existing_rts; do
+					routes+=( $route )
+				done
+				for target in $existing_tgts; do
+					targets+=( $target )
+				done
+				for ((i=0;i<${#routes[@]};++i)); do
+					if [ "${targets[$i]}" == "$MY_ID" ]
+					then
+						delete_onprem_route $table ${routes[$i]}
+					fi
+				done
+					
+			
+		done
+	fi
 
 }
 case "$1" in
