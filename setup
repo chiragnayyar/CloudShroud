@@ -108,7 +108,7 @@ for sg in $security_groups; do
 	update_sg $SG_ID $sg
 done
 }
-if [ $UPDATE_AWS ]
+if [ "$UPDATE_AWS" == "True" ]
 then
 	create_entries
 fi
