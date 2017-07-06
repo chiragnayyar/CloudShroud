@@ -57,7 +57,7 @@ aws ec2 revoke-security-group-ingress --region $REGION --group-id $1 --protocol 
 
 
 start() {
-	if [ $UPDATE_AWS ]
+	if [ "$UPDATE_AWS" == "True" ]
 	then
 		# Loop will go through each route table in this VPC, and if there is no conflicting route for on-prem, will point on-prem route to Openswan ENI
 		for table in $route_tables;do
@@ -89,7 +89,7 @@ start() {
 	fi
 }
 stop() {
-	if [ $UPDATE_AWS ]
+	if [ "$UPDATE_AWS" == "True" ]
 	then
 		# Loop to delete SG entries
 		for sg in $security_groups; do 
