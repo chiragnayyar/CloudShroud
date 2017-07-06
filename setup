@@ -22,13 +22,6 @@ NAT=$(echo "$NAT" | tr '[:upper:]' '[:lower:]')
 if [ "$NAT" == "disable" ]
 then
         LEFTSUBNET=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region ${REGION} --query 'Vpcs[*].[CidrBlock]' --output text)
-		
-elif [ "$NAT" == "pat" ]
-then
-		LEFTSUBNET="${MY_EIP}/32"
-		for network in $(echo $ONPREM | sed "s/,/\n/g");do
-			iptables -t nat -A POSTROUTING -s $VPC_CIDR -d $network -o eth0 -j MAQUERADE
-		done
 else
         if [[ "$NAT" =~ [,]+ ]]
         then
