@@ -6,6 +6,7 @@
 source /etc/cloudshroud/variables
 MY_EIP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
 MY_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region ${REGION} --query 'Vpcs[*].[CidrBlock]' --output text)
 echo "MY_ID=$MY_ID" >> /etc/cloudshroud/variables
 
 # Map user friendly DH group to swan keyword
@@ -14,12 +15,20 @@ declare -A ikegroups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="
 
 # Remove any whitespacing from commadelimitedlist variables.
 ONPREM=$(echo ${ONPREM//[[:blank:]]/})
+NAT=$(echo ${NAT//[[:blank:]]/})
+NAT=$(echo "$NAT" | tr '[:upper:]' '[:lower:]')
 
 # Detect if user wants to NAT their traffic. If they do, then set the NAT to their local LEFTSUBNET=, otherwise use their VPC CIDR. Also, if they are using NAT determine if it is dynamic or 1:1, and create the iptables accordingly.
-if [ "$NAT" == "Disable" ]
+if [ "$NAT" == "disable" ]
 then
         LEFTSUBNET=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region ${REGION} --query 'Vpcs[*].[CidrBlock]' --output text)
-
+		
+elif [ "$NAT" == "pat" ]
+then
+		LEFTSUBNET="${MY_EIP}/32"
+		for network in $(echo $ONPREM | sed "s/,/\n/g");do
+			iptables -t nat -A POSTROUTING -s $VPC_CIDR -d $network -o eth0 -j MAQUERADE
+		done
 else
         if [[ "$NAT" =~ [,]+ ]]
         then
@@ -44,7 +53,6 @@ else
 				done
         else
                 LEFTSUBNET=$NAT
-				VPC_CIDR=$(aws ec2 describe-vpcs --vpc-ids ${VPC} --region ${REGION} --query 'Vpcs[*].[CidrBlock]' --output text)
 				for NET in $(echo $ONPREM | sed "s/,/\n/g");do
 					iptables -t nat -A POSTROUTING -s $VPC_CIDR -d $NET -j NETMAP --to $NAT
 					iptables -t nat -A PREROUTING -d $NAT -j NETMAP --to $VPC_CIDR
@@ -55,7 +63,7 @@ sudo iptables-save > /etc/iptables.conf
 echo "# Load these iptables rules >> /etc/rc.local"
 echo "iptables-restore < /etc/iptables.conf" >> /etc/rc.local
 
-
+create_entries () {
 #This next section will update all the relevant SGs and VPC route tables in this VPC, so that EC2s can openly communication via the swan box
 # Get all the route table ids in this VPC
 route_tables=$(aws ec2 describe-route-tables --region ${REGION} --query 'RouteTables[*].[VpcId==`'${VPC}'`,RouteTableId]' --output text | grep True | awk '{print $2}')
@@ -106,6 +114,11 @@ for sg in $security_groups; do
 	update_sg $sg $SG_ID
 	update_sg $SG_ID $sg
 done
+}
+if [ $UPDATE_AWS ]
+then
+	create_entries
+fi
 
 # Create the IPSEC config file for swan
 CONFIG="/etc/cloudshroud/${NAME}.vpn.conf"
