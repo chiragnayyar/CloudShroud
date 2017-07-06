@@ -167,10 +167,10 @@
 			"ConstraintDescription": "Remote networks must be a valid IP CIDR range of the form x.x.x.x/x. (Example 10.0.0.0/16)."
 		},
 		"LocalNATNet": {
-			"Description": "Choose 'Disable', specify a single (NAT) network to translate your VPC to, list individual private host IP(s) in your VPC followed by their corresponding NAT IP (delimited by commas. ie <REALIP>,<NATIP>,<REALIP>,<NATIP), Choose 'PAT' to source NAT all of your VPC traffic to the (strong|open)swan public IP. The latter option is only valid if you wish to solely initiate connections VPC --> Remote Network, not the other direction",
+			"Description": "Specify the word 'Disable', OR specify a single (NAT) network to translate your VPC to, OR list individual private host IP(s) in your VPC followed by their corresponding NAT IP (delimited by commas. ie <REALIP>,<NATIP>,<REALIP>,<NATIP). You cannot combine network NAT and individual host NAT "
 			"Type": "String",
 			"Default": "Disable",
-			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E])|([p,P][a,A][t,T]))",
+			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E]))",
 			"ConstraintDescription": "You must choose a valid NAT IP(s) or network"
 		},
 		"RouteType": {
