@@ -7,7 +7,7 @@
 					"Label": {
 						"default": "General VPC Configuration"
 					},
-					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP"]
+					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP","UpdateAWS"]
 				}, {
 					"Label": {
 						"default": "Phase 1 IKE Settings (optional)"
@@ -93,6 +93,9 @@
 				},
 				"IKEDhGroup": {
 					"default": "Phase 1 IKE DH Group"
+				},
+				"UpdateAWS": {
+					"default": "VPC Auto Config"
 				}
 			}
 
@@ -164,10 +167,10 @@
 			"ConstraintDescription": "Remote networks must be a valid IP CIDR range of the form x.x.x.x/x. (Example 10.0.0.0/16)."
 		},
 		"LocalNATNet": {
-			"Description": "There are two methods of NAT'ing - Dynamic NAT and 1:1 NAT. For Dynamic NAT specify a single network to translate your entire VPC to. The network mask must be the same as your VPC network. In this case host IPs will translate directly from the actual VPC network to NAT network, and vice versa. Alternatively, you can specify individual 1:1 mappings of host IPs to NAT IPs, separated by commas - such as '<VPC IP>,<NAT IP>,<VPC IP>,<NAT IP>...',. For example you could specify 10.0.0.27, 192.168.25.24 assuming that 192.168.25.24 is an EC2 in your VPC and you want to translate it to NAT IP, 10.0.0.27. You can also choose 'Disable' to bypass this feature",
+			"Description": "Choose 'Disable', specify a single (NAT) network to translate your VPC to, list individual private host IP(s) in your VPC followed by their corresponding NAT IP (delimited by commas. ie <REALIP>,<NATIP>,<REALIP>,<NATIP), Choose 'PAT' to source NAT all of your VPC traffic to the (strong|open)swan public IP. The latter option is only valid if you wish to solely initiate connections VPC --> Remote Network, not the other direction",
 			"Type": "String",
 			"Default": "Disable",
-			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E]))",
+		"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E])|([p,P][a,A][t,T]))",
 			"ConstraintDescription": "You must choose a valid NAT IP(s) or network"
 		},
 		"RouteType": {
@@ -258,6 +261,12 @@
 			"Default": "169.254.13.253/30",
 			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
 			"ConstraintDescription": "You must choose a valid remote VTI IP"
+		},
+		"UpdateAWS": {
+			"Description": "Set to true if you would like CloudShroud to automatically create the VPC route table and security group entries needed to allow open communication between the remote network(s) and your EC2(s) over the VPN. If false then you will manually have to create these entries later."
+			"Type": "String",
+			"Default": "False",
+			"AllowedValues": ["True","False"]
 		}
 	},
 
@@ -529,7 +538,12 @@
 									}
 								}
 							},
-
+							"setupdateaws": {
+								"command": "echo UPDATE_AWS=\"$UPDATE_AWS\" >> /etc/cloudshroud/variables",
+								"env": {
+									"UPDATE_AWS": {"Ref":"UpdateAWS"}
+								}
+							},
 							"startscript": {
 								"command": "bash /etc/cloudshroud/setup"
 							},							
