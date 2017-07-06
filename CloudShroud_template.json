@@ -167,7 +167,7 @@
 			"ConstraintDescription": "Remote networks must be a valid IP CIDR range of the form x.x.x.x/x. (Example 10.0.0.0/16)."
 		},
 		"LocalNATNet": {
-			"Description": "Specify the word 'Disable', OR specify a single (NAT) network to translate your VPC to, OR list individual private host IP(s) in your VPC followed by their corresponding NAT IP (delimited by commas. ie <REALIP>,<NATIP>,<REALIP>,<NATIP). You cannot combine network NAT and individual host NAT "
+			"Description": "Specify the word 'Disable', OR specify a single (NAT) network to translate your VPC to, OR list individual private host IP(s) in your VPC followed by their corresponding NAT IP (delimited by commas. ie <REALIP>,<NATIP>,<REALIP>,<NATIP). You cannot combine network NAT and individual host NAT",
 			"Type": "String",
 			"Default": "Disable",
 			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( *)?|(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})( ,|,|, )?)+|([d,D][i,I][s,S][a,A][b,B][l,L][e,E]))",
