@@ -7,7 +7,7 @@
 					"Label": {
 						"default": "General VPC Configuration"
 					},
-					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP", "UpdateAWS"]
+					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP", "UpdateAWS", "VGWconnect"]
 				}, {
 					"Label": {
 						"default": "Phase 1 IKE Settings (optional)"
@@ -96,6 +96,9 @@
 				},
 				"UpdateAWS": {
 					"default": "VPC Auto Config"
+				},
+				"VGWconnect": {
+					"default": "VPN to Remote VPC"
 				}
 			}
 
@@ -267,597 +270,619 @@
 			"Type": "String",
 			"Default": "False",
 			"AllowedValues": ["True", "False"]
+		},
+		"VGWconnect": {
+			"Description": "Optional if you wish to create this as a site-to-site VPN connection with another VPC using the official AWS VPN service. Specify the remote VGW id here, and CloudShroud will automatically create a VPN with that VPC",
+			"Type": "String",
+			"Default": "Skip",
+			"AllowedPattern": "( *)?(vgw-[a-z09]{8}( *)?|[s,S][k,K],[i,I],[p,P])",
+			"ConstraintDescription": "You must choose a valid vgw-xxxxxxxx id OR 'Skip'"
 		}
 	},
 
-	"Mappings": {
-		"RegionMap": {
-			"us-east-1": {
-				"Strongswan": "ami-74cff562",
-				"Openswan": "ami-54d2e842"
-			},
-			"us-west-1": {
-				"Strongswan": "ami-8e1b34ee",
-				"Openswan": "ami-49002f29"
-			},
-			"us-west-2": {
-				"Strongswan": "ami-7e776407",
-				"Openswan": "ami-6f736016"
-			},
-			"eu-west-1": {
-				"Strongswan": "ami-e594759c",
-				"Openswan": "ami-3d927344"
-			},
-			"eu-west-2": {
-				"Strongswan": "ami-97c1d7f3",
-				"Openswan": "ami-6ac2d40e"
-			},
-			"us-east-2": {
-				"Strongswan": "ami-7f18391a",
-				"Openswan": "ami-f4183991"
-			},
-			"ap-southeast-1": {
-				"Strongswan": "ami-7be36918",
-				"Openswan": "ami-99ec66fa"
-			},
-			"ap-southeast-2": {
-				"Strongswan": "ami-75d5c716",
-				"Openswan": "ami-0dd7c56e"
-			},
-			"ap-northeast-1": {
-				"Strongswan": "ami-f2adb195",
-				"Openswan": "ami-5e819d39"
-			},
-			"ap-northeast-2": {
-				"Strongswan": "",
-				"Openswan": "ami-5486583a"
-			},
-			"sa-east-1": {
-				"Strongswan": "ami-c00277ac",
-				"Openswan": "ami-14017478"
-			},
-			"eu-central-1": {
-				"Strongswan": "ami-cc8f2fa3",
-				"Openswan": "ami-8e8f2fe1"
-			},
-			"ca-central-1": {
-				"Strongswan": "ami-d77fc0b3",
-				"Openswan": "ami-c2803fa6"
-			},
-			"ap-south-1": {
-				"Strongswan": "ami-21d4aa4e",
-				"Openswan": "ami-f8d2ac97"
+		"Mappings": {
+			"RegionMap": {
+				"us-east-1": {
+					"Strongswan": "ami-74cff562",
+					"Openswan": "ami-54d2e842"
+				},
+				"us-west-1": {
+					"Strongswan": "ami-8e1b34ee",
+					"Openswan": "ami-49002f29"
+				},
+				"us-west-2": {
+					"Strongswan": "ami-7e776407",
+					"Openswan": "ami-6f736016"
+				},
+				"eu-west-1": {
+					"Strongswan": "ami-e594759c",
+					"Openswan": "ami-3d927344"
+				},
+				"eu-west-2": {
+					"Strongswan": "ami-97c1d7f3",
+					"Openswan": "ami-6ac2d40e"
+				},
+				"us-east-2": {
+					"Strongswan": "ami-7f18391a",
+					"Openswan": "ami-f4183991"
+				},
+				"ap-southeast-1": {
+					"Strongswan": "ami-7be36918",
+					"Openswan": "ami-99ec66fa"
+				},
+				"ap-southeast-2": {
+					"Strongswan": "ami-75d5c716",
+					"Openswan": "ami-0dd7c56e"
+				},
+				"ap-northeast-1": {
+					"Strongswan": "ami-f2adb195",
+					"Openswan": "ami-5e819d39"
+				},
+				"ap-northeast-2": {
+					"Strongswan": "",
+					"Openswan": "ami-5486583a"
+				},
+				"sa-east-1": {
+					"Strongswan": "ami-c00277ac",
+					"Openswan": "ami-14017478"
+				},
+				"eu-central-1": {
+					"Strongswan": "ami-cc8f2fa3",
+					"Openswan": "ami-8e8f2fe1"
+				},
+				"ca-central-1": {
+					"Strongswan": "ami-d77fc0b3",
+					"Openswan": "ami-c2803fa6"
+				},
+				"ap-south-1": {
+					"Strongswan": "ami-21d4aa4e",
+					"Openswan": "ami-f8d2ac97"
+				}
+
 			}
+		},
+		"Resources": {
+			"swanEIP": {
+				"Type": "AWS::EC2::EIP",
+				"Properties": {
+					"Domain": "vpc",
+					"InstanceId": {
+						"Ref": "swanEC2"
+					}
+				}
+			},
+			"swanEC2": {
+				"Type": "AWS::EC2::Instance",
+				"Metadata": {
+					"AWS::CloudFormation::Init": {
+						"configSets": {
+							"Install": ["Install"]
+						},
 
-		}
-	},
-	"Resources": {
-		"swanEIP": {
-			"Type": "AWS::EC2::EIP",
-			"Properties": {
-				"Domain": "vpc",
-				"InstanceId": {
-					"Ref": "swanEC2"
+						"Install": {
+							"files": {
+								"/etc/cloudshroud/setup": {
+									"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup",
+									"mode": "000755",
+									"user": "root",
+									"group": "root"
+								},
+								"/etc/cloudshroud/aws.updown": {
+									"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/aws.updown",
+									"mode": "000755",
+									"user": "root",
+									"group": "root"
+
+								},
+								"/etc/init.d/cloudshroud-cleanup": {
+									"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cloudshroud-cleanup",
+									"mode": "000755",
+									"user": "root",
+									"group": "root"
+								}
+							},
+							"commands": {
+								"setvpc": {
+									"command": "echo VPC=\"$VPC\" >> /etc/cloudshroud/variables",
+									"env": {
+										"VPC": {
+											"Ref": "VPCID"
+										}
+									}
+								},
+								"setregion": {
+									"command": "echo REGION=\"$REGION\" >> /etc/cloudshroud/variables",
+									"env": {
+										"REGION": {
+											"Ref": "AWS::Region"
+										}
+
+									}
+								},
+								"setonprem": {
+									"command": "echo ONPREM=\"'${ONPREM}'\" >> /etc/cloudshroud/variables",
+									"env": {
+										"ONPREM": {
+											"Ref": "RemoteNet"
+										}
+
+									}
+								},
+								"setnat": {
+									"command": "echo NAT=\"'${NAT}'\" >> /etc/cloudshroud/variables",
+									"env": {
+										"NAT": {
+											"Ref": "LocalNATNet"
+										}
+
+									}
+								},
+								"setroutetype": {
+									"command": "echo TYPE=\"$TYPE\" >> /etc/cloudshroud/variables",
+									"env": {
+										"TYPE": {
+											"Ref": "RouteType"
+										}
+									}
+								},
+								"setpfs": {
+									"command": "echo PFS=\"$PFS\" >> /etc/cloudshroud/variables",
+									"env": {
+										"PFS": {
+											"Ref": "PFS"
+										}
+									}
+								},
+								"setenc": {
+									"command": "echo P2ENC=\"$P2ENC\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P2ENC": {
+											"Ref": "Phase2Enc"
+										}
+									}
+								},
+								"sethash": {
+									"command": "echo P2HASH=\"$P2HASH\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P2HASH": {
+											"Ref": "Phase2Int"
+										}
+									}
+								},
+
+								"setpsk": {
+									"command": "echo PSK=\"'$PSK'\" >> /etc/cloudshroud/variables",
+									"env": {
+										"PSK": {
+											"Ref": "PSK"
+										}
+									}
+
+								},
+								"setpeer": {
+									"command": "echo PEER=\"$PEER\" >> /etc/cloudshroud/variables",
+									"env": {
+										"PEER": {
+											"Ref": "RemotePeer"
+										}
+									}
+
+								},
+								"setsgid": {
+									"command": "echo SG_ID=\"$SG_ID\" >> /etc/cloudshroud/variables",
+									"env": {
+										"SG_ID": {
+											"Ref": "swanSg"
+										}
+									}
+								},
+								"setname": {
+									"command": "echo NAME=\"$NAME\" >> /etc/cloudshroud/variables",
+									"env": {
+										"NAME": {
+											"Ref": "VPNName"
+										}
+									}
+								},
+								"setlinklocal": {
+									"command": "echo LINKLOCAL=\"$LL\" >> /etc/cloudshroud/variables",
+									"env": {
+										"LL": {
+											"Ref": "LinkLocal"
+										}
+									}
+								},
+								"setlinkremote": {
+									"command": "echo LINKREMOTE=\"$LR\" >> /etc/cloudshroud/variables",
+									"env": {
+										"LR": {
+											"Ref": "LinkRemote"
+										}
+									}
+								},
+								"setikeversion": {
+									"command": "echo IKEVERSION=\"$IKEVERSION\" >> /etc/cloudshroud/variables",
+									"env": {
+										"IKEVERSION": {
+											"Ref": "IKEversion"
+										}
+									}
+								},
+								"setikeenc": {
+									"command": "echo P1ENC=\"$P1ENC\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P1ENC": {
+											"Ref": "IKEenc"
+										}
+									}
+								},
+								"setikeint": {
+									"command": "echo P1INT=\"$P1INT\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P1INT": {
+											"Ref": "IKEint"
+										}
+									}
+								},
+								"setikelifetime": {
+									"command": "echo P1LIFE=\"$P1LIFE\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P1LIFE": {
+											"Ref": "IKELifetime"
+										}
+									}
+								},
+								"setp2lifetime": {
+									"command": "echo P2LIFE=\"$P2LIFE\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P2LIFE": {
+											"Ref": "Phase2Lifetime"
+										}
+									}
+								},
+								"setikedhgroup": {
+									"command": "echo P1DHGROUP=\"$P1DHGROUP\" >> /etc/cloudshroud/variables",
+									"env": {
+										"P1DHGROUP": {
+											"Ref": "IKEDhGroup"
+										}
+									}
+								},
+								"setupdateaws": {
+									"command": "echo UPDATE_AWS=\"$UPDATE_AWS\" >> /etc/cloudshroud/variables",
+									"env": {
+										"UPDATE_AWS": {
+											"Ref": "UpdateAWS"
+										}
+									}
+								},
+								"setvgwconnect": {
+									"command": "echo VGWCONNECT=\"$VGWCONNECT\" >> /etc/cloudshroud/variables",
+									"env": {
+										"VGWCONNECT": {
+											"Ref": "VGWconnect"
+										}
+									}
+								},
+								"startscript": {
+									"command": "bash /etc/cloudshroud/setup"
+								},
+								"startstrolgswan": {
+									"command": "service ipsec restart || true"
+								},
+								"startstrongswan": {
+									"command": "strongswan restart || true"
+								},
+								"sttcheckconfig": {
+									"command": "chkconfig --add cloudshroud-cleanup"
+								},
+								"touchfile": {
+									"command": "touch /var/lock/subsys/cloudshroud-cleanup"
+								}
+							}
+						}
+
+					}
+				},
+				"Properties": {
+					"UserData": {
+						"Fn::Base64": {
+							"Fn::Join": ["", [
+									"#!/bin/bash -xe\n",
+									"# Create cloudshroud directory\n",
+									"mkdir /etc/cloudshroud/\n",
+									"chown root:root /etc/cloudshroud/\n",
+									"# Create variables file from EC2 metadata\n",
+									"/opt/aws/bin/cfn-init -v ",
+									"         --stack ", {
+										"Ref": "AWS::StackName"
+									},
+									"         --resource swanEC2 ",
+									"         --configsets Install ",
+									"         --region ", {
+										"Ref": "AWS::Region"
+									}
+								]]
+						}
+					},
+					"DisableApiTermination": {
+						"Ref": "TerminatePro"
+					},
+					"InstanceInitiatedShutdownBehavior": "stop",
+					"ImageId": {
+						"Fn::If":
+						["RouteBasedOrIKEv2", {
+								"Fn::FindInMap": ["RegionMap", {
+										"Ref": "AWS::Region"
+									}, "Strongswan"]
+							}, {
+								"Fn::FindInMap": ["RegionMap", {
+										"Ref": "AWS::Region"
+									}, "Openswan"]
+							}
+						]
+					},
+					"InstanceType": {
+						"Ref": "InstanceType"
+					},
+					"IamInstanceProfile": {
+						"Ref": "swanInstanceProfile"
+					},
+					"SourceDestCheck": "false",
+					"KeyName": {
+						"Ref": "KeyName"
+					},
+					"Monitoring": "false",
+					"Tags": [{
+							"Key": "Name",
+							"Value": "swanEC2"
+						}
+					],
+					"NetworkInterfaces": [{
+							"AssociatePublicIpAddress": "False",
+							"DeleteOnTermination": "true",
+							"Description": "Interface of swan Ec2",
+							"DeviceIndex": 0,
+							"SubnetId": {
+								"Ref": "SwanSubnet"
+							},
+							"GroupSet": [{
+									"Ref": "swanSg"
+								}
+							]
+						}
+					]
+
+				}
+			},
+
+			"swanIAMPolicy": {
+				"Type": "AWS::IAM::Policy",
+				"Properties": {
+					"Roles": [{
+							"Ref": "swanIAMRole"
+						}
+					],
+					"PolicyName": "swanAPIaccess",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [{
+								"Effect": "Allow",
+								"Action": [
+									"ec2:AuthorizeSecurityGroupIngress",
+									"ec2:DescribeSecurityGroups",
+									"ec2:DescribeRouteTables",
+									"ec2:DescribeVpcs",
+									"ec2:CreateRoute",
+									"ec2:RevokeSecurityGroupIngress",
+									"ec2:DeleteRoute",
+									"ec2:CreateCustomerGateway",
+									"ec2:DescribeVpnGateways",
+									"ec2:DescribeCustomerGateways",
+									"ec2:CreateVpnConnection",
+									"ec2:CreateTags",
+									"ec2:DescribeVpnConnections",
+									"cloudwatch:GetMetricStatistics",
+									"cloudwatch:ListMetrics",
+									"cloudwatch:PutMetricData"
+
+								],
+								"Resource": "*"
+							}
+						]
+
+					}
+				}
+			},
+			"swanIAMRole": {
+				"Type": "AWS::IAM::Role",
+				"Properties": {
+					"AssumeRolePolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [{
+								"Effect": "Allow",
+								"Principal": {
+									"Service": "ec2.amazonaws.com"
+								},
+								"Action": "sts:AssumeRole"
+							}
+						]
+					},
+					"Path": "/"
+				}
+			},
+
+			"swanInstanceProfile": {
+				"Type": "AWS::IAM::InstanceProfile",
+				"Properties": {
+					"Path": "/",
+					"Roles": [{
+							"Ref": "swanIAMRole"
+						}
+					]
+				}
+			},
+
+			"swanSg": {
+				"DependsOn": ["swanIAMPolicy", "swanIAMRole", "swanInstanceProfile"],
+				"Type": "AWS::EC2::SecurityGroup",
+				"Properties": {
+					"GroupDescription": "Security group used by swan EC2",
+					"VpcId": {
+						"Ref": "VPCID"
+					}
+				}
+			},
+
+			"swanEIPAssoc": {
+				"Type": "AWS::EC2::EIPAssociation",
+				"Properties": {
+					"AllocationId": {
+						"Fn::GetAtt": [
+							"swanEIP",
+							"AllocationId"
+						]
+					},
+					"InstanceId": {
+						"Ref": "swanEC2"
+					}
+				}
+			},
+
+			"ingress2": {
+				"Type": "AWS::EC2::SecurityGroupIngress",
+				"Properties": {
+					"GroupId": {
+						"Ref": "swanSg"
+					},
+					"IpProtocol": "tcp",
+					"FromPort": "22",
+					"ToPort": "22",
+					"CidrIp": {
+						"Ref": "SSHSourceIP"
+					}
+				}
+			},
+			"ingress3": {
+				"Type": "AWS::EC2::SecurityGroupIngress",
+				"Properties": {
+					"GroupId": {
+						"Ref": "swanSg"
+					},
+					"IpProtocol": "50",
+					"CidrIp": {
+						"Fn::Join": ["", [{
+									"Ref": "RemotePeer"
+								}, "/32"]]
+					}
+				}
+			},
+			"ingress4": {
+				"Type": "AWS::EC2::SecurityGroupIngress",
+				"Properties": {
+					"GroupId": {
+						"Ref": "swanSg"
+					},
+					"IpProtocol": "udp",
+					"FromPort": "4500",
+					"ToPort": "4500",
+					"CidrIp": {
+						"Fn::Join": ["", [{
+									"Ref": "RemotePeer"
+								}, "/32"]]
+					}
+				}
+			},
+			"ingress5": {
+				"Type": "AWS::EC2::SecurityGroupIngress",
+				"Properties": {
+					"GroupId": {
+						"Ref": "swanSg"
+					},
+					"IpProtocol": "udp",
+					"FromPort": "500",
+					"ToPort": "500",
+					"CidrIp": {
+						"Fn::Join": ["", [{
+									"Ref": "RemotePeer"
+								}, "/32"]]
+					}
 				}
 			}
 		},
-		"swanEC2": {
-			"Type": "AWS::EC2::Instance",
-			"Metadata": {
-				"AWS::CloudFormation::Init": {
-					"configSets": {
-						"Install": ["Install"]
-					},
-
-					"Install": {
-						"files": {
-							"/etc/cloudshroud/setup": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/setup",
-								"mode": "000755",
-								"user": "root",
-								"group": "root"
-							},
-							"/etc/cloudshroud/aws.updown": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/aws.updown",
-								"mode": "000755",
-								"user": "root",
-								"group": "root"
-
-							},
-							"/etc/init.d/cloudshroud-cleanup": {
-								"source": "https://raw.githubusercontent.com/mysteryguy123/CloudShroud/master/cloudshroud-cleanup",
-								"mode": "000755",
-								"user": "root",
-								"group": "root"
+		"Conditions": {
+			"RouteBased": {
+				"Fn::Or": [{
+						"Fn::Equals": ["cisco-ios", {
+								"Ref": "RouteType"
 							}
-						},
-						"commands": {
-							"setvpc": {
-								"command": "echo VPC=\"$VPC\" >> /etc/cloudshroud/variables",
-								"env": {
-									"VPC": {
-										"Ref": "VPCID"
-									}
-								}
-							},
-							"setregion": {
-								"command": "echo REGION=\"$REGION\" >> /etc/cloudshroud/variables",
-								"env": {
-									"REGION": {
-										"Ref": "AWS::Region"
-									}
-
-								}
-							},
-							"setonprem": {
-								"command": "echo ONPREM=\"'${ONPREM}'\" >> /etc/cloudshroud/variables",
-								"env": {
-									"ONPREM": {
-										"Ref": "RemoteNet"
-									}
-
-								}
-							},
-							"setnat": {
-								"command": "echo NAT=\"'${NAT}'\" >> /etc/cloudshroud/variables",
-								"env": {
-									"NAT": {
-										"Ref": "LocalNATNet"
-									}
-
-								}
-							},
-							"setroutetype": {
-								"command": "echo TYPE=\"$TYPE\" >> /etc/cloudshroud/variables",
-								"env": {
-									"TYPE": {
-										"Ref": "RouteType"
-									}
-								}
-							},
-							"setpfs": {
-								"command": "echo PFS=\"$PFS\" >> /etc/cloudshroud/variables",
-								"env": {
-									"PFS": {
-										"Ref": "PFS"
-									}
-								}
-							},
-							"setenc": {
-								"command": "echo P2ENC=\"$P2ENC\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P2ENC": {
-										"Ref": "Phase2Enc"
-									}
-								}
-							},
-							"sethash": {
-								"command": "echo P2HASH=\"$P2HASH\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P2HASH": {
-										"Ref": "Phase2Int"
-									}
-								}
-							},
-
-							"setpsk": {
-								"command": "echo PSK=\"'$PSK'\" >> /etc/cloudshroud/variables",
-								"env": {
-									"PSK": {
-										"Ref": "PSK"
-									}
-								}
-
-							},
-							"setpeer": {
-								"command": "echo PEER=\"$PEER\" >> /etc/cloudshroud/variables",
-								"env": {
-									"PEER": {
-										"Ref": "RemotePeer"
-									}
-								}
-
-							},
-							"setsgid": {
-								"command": "echo SG_ID=\"$SG_ID\" >> /etc/cloudshroud/variables",
-								"env": {
-									"SG_ID": {
-										"Ref": "swanSg"
-									}
-								}
-							},
-							"setname": {
-								"command": "echo NAME=\"$NAME\" >> /etc/cloudshroud/variables",
-								"env": {
-									"NAME": {
-										"Ref": "VPNName"
-									}
-								}
-							},
-							"setlinklocal": {
-								"command": "echo LINKLOCAL=\"$LL\" >> /etc/cloudshroud/variables",
-								"env": {
-									"LL": {
-										"Ref": "LinkLocal"
-									}
-								}
-							},
-							"setlinkremote": {
-								"command": "echo LINKREMOTE=\"$LR\" >> /etc/cloudshroud/variables",
-								"env": {
-									"LR": {
-										"Ref": "LinkRemote"
-									}
-								}
-							},
-							"setikeversion": {
-								"command": "echo IKEVERSION=\"$IKEVERSION\" >> /etc/cloudshroud/variables",
-								"env": {
-									"IKEVERSION": {
-										"Ref": "IKEversion"
-									}
-								}
-							},
-							"setikeenc": {
-								"command": "echo P1ENC=\"$P1ENC\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P1ENC": {
-										"Ref": "IKEenc"
-									}
-								}
-							},
-							"setikeint": {
-								"command": "echo P1INT=\"$P1INT\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P1INT": {
-										"Ref": "IKEint"
-									}
-								}
-							},
-							"setikelifetime": {
-								"command": "echo P1LIFE=\"$P1LIFE\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P1LIFE": {
-										"Ref": "IKELifetime"
-									}
-								}
-							},
-							"setp2lifetime": {
-								"command": "echo P2LIFE=\"$P2LIFE\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P2LIFE": {
-										"Ref": "Phase2Lifetime"
-									}
-								}
-							},
-							"setikedhgroup": {
-								"command": "echo P1DHGROUP=\"$P1DHGROUP\" >> /etc/cloudshroud/variables",
-								"env": {
-									"P1DHGROUP": {
-										"Ref": "IKEDhGroup"
-									}
-								}
-							},
-							"setupdateaws": {
-								"command": "echo UPDATE_AWS=\"$UPDATE_AWS\" >> /etc/cloudshroud/variables",
-								"env": {
-									"UPDATE_AWS": {
-										"Ref": "UpdateAWS"
-									}
-								}
-							},
-							"startscript": {
-								"command": "bash /etc/cloudshroud/setup"
-							},
-							"startstrolgswan": {
-								"command": "service ipsec restart || true"
-							},
-							"startstrongswan": {
-								"command": "strongswan restart || true"
-							},
-							"sttcheckconfig": {
-								"command": "chkconfig --add cloudshroud-cleanup"
-							},
-							"touchfile": {
-								"command": "touch /var/lock/subsys/cloudshroud-cleanup"
+						]
+					}, {
+						"Fn::Equals": ["route-based", {
+								"Ref": "RouteType"
 							}
-						}
+						]
 					}
-
-				}
+				]
 			},
-			"Properties": {
-				"UserData": {
-					"Fn::Base64": {
-						"Fn::Join": ["", [
-								"#!/bin/bash -xe\n",
-								"# Create cloudshroud directory\n",
-								"mkdir /etc/cloudshroud/\n",
-								"chown root:root /etc/cloudshroud/\n",
-								"# Create variables file from EC2 metadata\n",
-								"/opt/aws/bin/cfn-init -v ",
-								"         --stack ", {
-									"Ref": "AWS::StackName"
-								},
-								"         --resource swanEC2 ",
-								"         --configsets Install ",
-								"         --region ", {
-									"Ref": "AWS::Region"
-								}
-							]]
-					}
-				},
-				"DisableApiTermination": {
-					"Ref": "TerminatePro"
-				},
-				"InstanceInitiatedShutdownBehavior": "stop",
-				"ImageId": {
-					"Fn::If":
-					["RouteBasedOrIKEv2", {
-							"Fn::FindInMap": ["RegionMap", {
-									"Ref": "AWS::Region"
-								}, "Strongswan"]
-						}, {
-							"Fn::FindInMap": ["RegionMap", {
-									"Ref": "AWS::Region"
-								}, "Openswan"]
-						}
-					]
-				},
-				"InstanceType": {
-					"Ref": "InstanceType"
-				},
-				"IamInstanceProfile": {
-					"Ref": "swanInstanceProfile"
-				},
-				"SourceDestCheck": "false",
-				"KeyName": {
-					"Ref": "KeyName"
-				},
-				"Monitoring": "false",
-				"Tags": [{
-						"Key": "Name",
-						"Value": "swanEC2"
-					}
-				],
-				"NetworkInterfaces": [{
-						"AssociatePublicIpAddress": "False",
-						"DeleteOnTermination": "true",
-						"Description": "Interface of swan Ec2",
-						"DeviceIndex": 0,
-						"SubnetId": {
-							"Ref": "SwanSubnet"
-						},
-						"GroupSet": [{
-								"Ref": "swanSg"
+			"RouteBasedOrIKEv2": {
+				"Fn::Or": [{
+						"Fn::Equals": ["ikev2", {
+								"Ref": "IKEversion"
+							}
+						]
+					}, {
+						"Fn::Equals": ["route-based", {
+								"Ref": "RouteType"
+							}
+						]
+					}, {
+						"Fn::Equals": ["cisco-ios", {
+								"Ref": "RouteType"
 							}
 						]
 					}
 				]
 
-			}
-		},
+			},
 
-		"swanIAMPolicy": {
-			"Type": "AWS::IAM::Policy",
-			"Properties": {
-				"Roles": [{
-						"Ref": "swanIAMRole"
-					}
-				],
-				"PolicyName": "swanAPIaccess",
-				"PolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [{
-							"Effect": "Allow",
-							"Action": [
-								"ec2:AuthorizeSecurityGroupIngress",
-								"ec2:DescribeSecurityGroups",
-								"ec2:DescribeRouteTables",
-								"ec2:DescribeVpcs",
-								"ec2:CreateRoute",
-								"ec2:RevokeSecurityGroupIngress",
-								"ec2:DeleteRoute",
-								"cloudwatch:GetMetricStatistics",
-								"cloudwatch:ListMetrics",
-								"cloudwatch:PutMetricData"
-							],
-							"Resource": "*"
-						}
-					]
-
-				}
-			}
-		},
-		"swanIAMRole": {
-			"Type": "AWS::IAM::Role",
-			"Properties": {
-				"AssumeRolePolicyDocument": {
-					"Version": "2012-10-17",
-					"Statement": [{
-							"Effect": "Allow",
-							"Principal": {
-								"Service": "ec2.amazonaws.com"
+			"PFSenabled": {
+				"Fn::Not": [{
+						"Fn::Equals": [{
+								"Ref": "PFS"
 							},
-							"Action": "sts:AssumeRole"
-						}
-					]
-				},
-				"Path": "/"
-			}
-		},
-
-		"swanInstanceProfile": {
-			"Type": "AWS::IAM::InstanceProfile",
-			"Properties": {
-				"Path": "/",
-				"Roles": [{
-						"Ref": "swanIAMRole"
+							"Disable"]
 					}
 				]
-			}
-		},
-
-		"swanSg": {
-			"DependsOn": ["swanIAMPolicy", "swanIAMRole", "swanInstanceProfile"],
-			"Type": "AWS::EC2::SecurityGroup",
-			"Properties": {
-				"GroupDescription": "Security group used by swan EC2",
-				"VpcId": {
-					"Ref": "VPCID"
-				}
-			}
-		},
-
-		"swanEIPAssoc": {
-			"Type": "AWS::EC2::EIPAssociation",
-			"Properties": {
-				"AllocationId": {
-					"Fn::GetAtt": [
-						"swanEIP",
-						"AllocationId"
-					]
-				},
-				"InstanceId": {
-					"Ref": "swanEC2"
-				}
-			}
-		},
-
-		"ingress2": {
-			"Type": "AWS::EC2::SecurityGroupIngress",
-			"Properties": {
-				"GroupId": {
-					"Ref": "swanSg"
-				},
-				"IpProtocol": "tcp",
-				"FromPort": "22",
-				"ToPort": "22",
-				"CidrIp": {
-					"Ref": "SSHSourceIP"
-				}
-			}
-		},
-		"ingress3": {
-			"Type": "AWS::EC2::SecurityGroupIngress",
-			"Properties": {
-				"GroupId": {
-					"Ref": "swanSg"
-				},
-				"IpProtocol": "50",
-				"CidrIp": {
-					"Fn::Join": ["", [{
-								"Ref": "RemotePeer"
-							}, "/32"]]
-				}
-			}
-		},
-		"ingress4": {
-			"Type": "AWS::EC2::SecurityGroupIngress",
-			"Properties": {
-				"GroupId": {
-					"Ref": "swanSg"
-				},
-				"IpProtocol": "udp",
-				"FromPort": "4500",
-				"ToPort": "4500",
-				"CidrIp": {
-					"Fn::Join": ["", [{
-								"Ref": "RemotePeer"
-							}, "/32"]]
-				}
-			}
-		},
-		"ingress5": {
-			"Type": "AWS::EC2::SecurityGroupIngress",
-			"Properties": {
-				"GroupId": {
-					"Ref": "swanSg"
-				},
-				"IpProtocol": "udp",
-				"FromPort": "500",
-				"ToPort": "500",
-				"CidrIp": {
-					"Fn::Join": ["", [{
-								"Ref": "RemotePeer"
-							}, "/32"]]
-				}
-			}
-		}
-	},
-	"Conditions": {
-		"RouteBased": {
-			"Fn::Or": [{
-					"Fn::Equals": ["cisco-ios", {
-							"Ref": "RouteType"
-						}
-					]
-				}, {
-					"Fn::Equals": ["route-based", {
-							"Ref": "RouteType"
-						}
-					]
-				}
-			]
-		},
-		"RouteBasedOrIKEv2": {
-			"Fn::Or": [{
-					"Fn::Equals": ["ikev2", {
-							"Ref": "IKEversion"
-						}
-					]
-				}, {
-					"Fn::Equals": ["route-based", {
-							"Ref": "RouteType"
-						}
-					]
-				}, {
-					"Fn::Equals": ["cisco-ios", {
-							"Ref": "RouteType"
-						}
-					]
-				}
-			]
-
-		},
-
-		"PFSenabled": {
-			"Fn::Not": [{
-					"Fn::Equals": [{
-							"Ref": "PFS"
-						},
-						"Disable"]
-				}
-			]
-		},
-		"PFSNotEnabled": {
-			"Fn::Equals": [{
-					"Ref": "PFS"
-				},
-				"Disable"]
-		}
-	},
-
-	"Outputs": {
-		"VPNendpoint": {
-			"Description": "The public IP of your *swan VPN endpoint.",
-			"Value": {
-				"Fn::GetAtt": ["swanEC2", "PublicIp"]
-			}
-		},
-		"AWSTunnelVtiIp": {
-			"Description": "The inside tunnel VTI IP on the AWS side of this VPN",
-			"Value": {
-				"Ref": "LinkLocal"
 			},
-			"Condition": "RouteBased"
+			"PFSNotEnabled": {
+				"Fn::Equals": [{
+						"Ref": "PFS"
+					},
+					"Disable"]
+			}
 		},
-		"RemoteTunnelVtiIp": {
-			"Description": "The inside tunnel VTI IP for the remote side of this VPN",
-			"Value": {
-				"Ref": "LinkRemote"
+
+		"Outputs": {
+			"VPNendpoint": {
+				"Description": "The public IP of your *swan VPN endpoint.",
+				"Value": {
+					"Fn::GetAtt": ["swanEC2", "PublicIp"]
+				}
 			},
-			"Condition": "RouteBased"
+			"AWSTunnelVtiIp": {
+				"Description": "The inside tunnel VTI IP on the AWS side of this VPN",
+				"Value": {
+					"Ref": "LinkLocal"
+				},
+				"Condition": "RouteBased"
+			},
+			"RemoteTunnelVtiIp": {
+				"Description": "The inside tunnel VTI IP for the remote side of this VPN",
+				"Value": {
+					"Ref": "LinkRemote"
+				},
+				"Condition": "RouteBased"
+			}
 		}
 	}
-}
