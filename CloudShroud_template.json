@@ -146,12 +146,13 @@
 			"Type": "AWS::EC2::Subnet::Id"
 		},
 		"PSK": {
-			"Description": "The preshared key that you want to use for the VPN. You can use upper/lower letters, numbers, special characters (#!@&) and password length must be a min of 8 characters and max of 30.",
+			"Description": "The preshared key that you want to use for the VPN. You can use upper/lower letters, numbers, special characters (#!@&) and password length must be a min of 8 characters and max of 30. You can skip this field if you previously specified a vgw-xxxxxxx Id to autoconfigure this VPN for. The VGW will auto-generate the Preshared Key. ",
 			"Type": "String",
 			"MinLength": "8",
 			"MaxLength": "30",
 			"NoEcho": "True",
-			"AllowedPattern": "([#!@&a-zA-Z0-9]+)",
+			"Default": "VGWSupplied",
+			"AllowedPattern": "[#!@&a-zA-Z0-9]+",
 			"ConstraintDescription": "Preshared Key can have upper and lower letters, numbers, special characters (#!@&), and password length must be a min of 8 characters and max of 30."
 		},
 		"RemotePeer": {
@@ -272,10 +273,10 @@
 			"AllowedValues": ["True", "False"]
 		},
 		"VGWconnect": {
-			"Description": "Optional if you wish to create this as a site-to-site VPN connection with another VPC using the official AWS VPN service. Specify the remote VGW id here, and CloudShroud will automatically create a VPN with that VPC",
+			"Description": "Optional if you wish to create this as a site-to-site VPN connection with another VPC using the official AWS VPN service. Specify the remote VGW id (vgw-xxxxxxxx) here. CloudShroud will automatically create a VPN with that VPC/VGW, and you don't nee to configure anything. You can also specify 'Custom' to build a custom VPN to a non-VPC site.",
 			"Type": "String",
-			"Default": "Skip",
-			"AllowedPattern": "( *)?(vgw-[a-z09]{8}( *)?|[s,S][k,K],[i,I],[p,P])",
+			"Default": "Custom",
+			"AllowedPattern": "(( *)?vgw-[a-z09]{8}( *)?|[s,S][k,K][i,I][p,P])",
 			"ConstraintDescription": "You must choose a valid vgw-xxxxxxxx id OR 'Skip'"
 		}
 	},
