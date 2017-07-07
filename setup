@@ -246,7 +246,7 @@ vgw_vpn () {
 		VPNID=$(aws ec2 create-vpn-connection --region $region --type ipsec.1 --customer-gateway-id $CGWID --vpn-gateway-id $VGWCONNECT --options "{\"StaticRoutesOnly\":true}" --query 'VpnConnection.VpnConnectionId' --output text)
 		sleep 20
 		aws ec2 describe-vpn-connections --vpn-connection-ids $VPNID --region $region --query 'VpnConnections[*].[CustomerGatewayConfiguration]' --output text >> "$XML_FILE"
-		aws ec2 create-tags --region $region --resources "$CGWID" "$VPNID" --tags Key=Name,Value=ToCloudShroud${REGION}
+		aws ec2 create-tags --region $region --resources "$CGWID" "$VPNID" --tags Key=Name,Value=ToCloudShroud-${REGION}
 		break
 	fi
    done
