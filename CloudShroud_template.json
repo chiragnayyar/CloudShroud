@@ -276,7 +276,7 @@
 			"Description": "Optional if you wish to create this as a site-to-site VPN connection with another VPC using the official AWS VPN service. Specify the remote VGW id (vgw-xxxxxxxx) here. CloudShroud will automatically create a VPN with that VPC/VGW, and you don't nee to configure anything. You can also specify 'Custom' to build a custom VPN to a non-VPC site.",
 			"Type": "String",
 			"Default": "Custom",
-			"AllowedPattern": "(( *)?vgw-[a-z09]{8}( *)?|[s,S][k,K][i,I][p,P])",
+			"AllowedPattern": "(( *)?vgw-[a-z09]{8}( *)?|[c,C][u,U][s,S][t,T][o,O][m,M])",
 			"ConstraintDescription": "You must choose a valid vgw-xxxxxxxx id OR 'Skip'"
 		}
 	},
