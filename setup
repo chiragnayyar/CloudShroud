@@ -17,6 +17,9 @@ declare -A ikegroups=( ["Group2"]="modp1024" ["Group5"]="modp1536" ["Group14"]="
 ONPREM=$(echo ${ONPREM//[[:blank:]]/})
 NAT=$(echo ${NAT//[[:blank:]]/})
 NAT=$(echo "$NAT" | tr '[:upper:]' '[:lower:]')
+VGWCONNECT=$(echo ${VGWCONNECT//[[:blank:]]/})
+VGWCONNECT=$(echo "$VGWCONNECT" | tr '[:upper:]' '[:lower:]')
+
 
 # Detect if user wants to NAT their traffic. If they do, then set the NAT to their local LEFTSUBNET=, otherwise use their VPC CIDR. Also, if they are using NAT determine if it is dynamic or 1:1, and create the iptables accordingly.
 if [ "$NAT" == "disable" ]
@@ -113,8 +116,11 @@ then
 	create_entries
 fi
 
-# Create the IPSEC config file for swan
 CONFIG="/etc/cloudshroud/${NAME}.vpn.conf"
+
+# Function to create VPN based on users preferences IF they are not using a VGW
+custom_vpn() {
+# Create the IPSEC config file for swan
 if [ "$PFS" != "Disable" ] && [ "$IKEVERSION" == "ikev2" ]
 then
 	ESP="${P2ENC}-${P2HASH}-${pfsgroups[${PFS}]}"
@@ -152,11 +158,16 @@ conn $NAME
 	rightsubnet=0.0.0.0/0
 	dpddelay=10s
 	dpdtimeout=30s
-	dpdaction=clear
+	dpdaction=restart
 	mark=50
 	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
+
+cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
+$PEER : PSK "${PSK}"
+EOF
+chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 	
 
 elif [ "$TYPE" == "policy-based" ] || [ "$TYPE" == "cisco-asa" ] && [ "$IKEVERSION" != "ikev1" ]  # if user chose policy-based and NOT ikev1
@@ -179,11 +190,16 @@ conn $NAME
 	rightsubnet=$ONPREM
 	dpddelay=10s
 	dpdtimeout=30s
-	dpdaction=clear
+	dpdaction=restart
 	mark=50
 	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
+
+cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
+$PEER : PSK "${PSK}"
+EOF
+chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 
 elif [ "$TYPE" == "policy-based" ] || [ "$TYPE" == "cisco-asa" ] && [ "$IKEVERSION" == "ikev1" ] # user chose policy-based AND ikev1 (use openswan)
 then
@@ -205,14 +221,114 @@ conn $NAME
         leftsubnets={$LEFTSUBNET}
         rightsubnets={$ONPREM}
 EOF
-			
-fi
 
-# Create PSK file
 cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
 %any $PEER : PSK "${PSK}"
 EOF
 chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
+			
+fi
+}
+
+# Function to create a VPN to a VGW
+vgw_vpn () {
+   
+	# The file to export download config to
+	XML_FILE=/etc/cloudshroud/output
+   
+  # determine which region the user's VGW is in and then create a VPN to the VGW
+  declare -a REGIONS_ARRAY=( "us-east-1" "us-west-1" "us-west-2" "eu-west-2" "us-east-2" "ap-southeast-1" "ap-southeast-2" "ap-northeast-1" "ap-northeast-2" "sa-east-1" "eu-central-1" "ca-central-1" "ap-south-1" )
+  
+  for region in ${REGIONS_ARRAY[@]}; do
+	if [ "$(aws ec2 describe-vpn-gateways --filters Name=vpn-gateway-id,Values=${VGWCONNECT} --region ${region} --output text | awk 'NR==1{print $2}')" == "available" ]
+	then
+		CGWID=$(aws ec2 create-customer-gateway --region $region --type ipsec.1 --public-ip $MY_EIP --bgp-asn 65523 --query 'CustomerGateway.CustomerGatewayId' --output text)
+		VPNID=$(aws ec2 create-vpn-connection --region $region --type ipsec.1 --customer-gateway-id $CGWID --vpn-gateway-id $VGWCONNECT --options "{\"StaticRoutesOnly\":true}" --query 'VpnConnection.VpnConnectionId' --output text)
+		sleep 20
+		aws ec2 describe-vpn-connections --vpn-connection-ids $VPNID --region $region --query 'VpnConnections[*].[CustomerGatewayConfiguration]' --output text >> "$XML_FILE"
+		aws ec2 create-tags --region $region --resources "$CGWID" "$VPNID" --tags Key=Name,Value=ToCloudShroud${REGION}
+		break
+	fi
+   done
+		
+	  # parse xml, and assign variables 
+  LINK_LOCAL1=$(echo "cat //tunnel_inside_address/ip_address" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==1{print $1}')
+  LINK_REMOTE1=$(echo "cat //tunnel_inside_address/ip_address" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==3{print $1}')
+  PEER1=$(echo "cat //tunnel_outside_address/ip_address" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==3{print $1}')
+  PSK1=$(echo "cat //ike/pre_shared_key" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==1{print $1}')
+  
+  LINK_LOCAL2=$(echo "cat //tunnel_inside_address/ip_address" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==5{print $1}')
+  LINK_REMOTE2=$(echo "cat //tunnel_inside_address/ip_address" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==7{print $1}')
+  PEER2=$(echo "cat //tunnel_outside_address/ip_address" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==7{print $1}')
+  PSK2=$(echo "cat //ike/pre_shared_key" |xmllint --shell $XML_FILE | sed '/^\/ >/d' | sed 's/<[^>]*.//g' | awk 'NR==3{print $1}')	
+  
+  
+  
+  # Create the strongswan VPN to the VGW
+  
+	cat <<EOF > $CONFIG
+  conn ${VPNID}-0
+	keyexchange=ikev1
+	auto=start
+	type=tunnel
+	authby=secret
+	leftid=$MY_EIP
+	left=%defaultroute
+	right=$PEER1
+	ikelifetime=8h
+	lifetime=1h
+	esp=aes128-sha1-modp1024
+	ike=aes128-sha1-modp1024
+	keyingtries=%forever
+	leftsubnet=0.0.0.0/0
+	rightsubnet=0.0.0.0/0
+	dpddelay=10s
+	dpdtimeout=30s
+	dpdaction=restart
+	mark=50
+	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINK_LOCAL1} -lr ${LINK_REMOTE1} -m 50"
+EOF
+
+cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
+$PEER1 : PSK "${PSK1}"
+EOF
+chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
+
+  cat <<EOT >> $CONFIG
+  conn ${VPNID}-1
+	keyexchange=ikev1
+	auto=start
+	type=tunnel
+	authby=secret
+	leftid=$MY_EIP
+	left=%defaultroute
+	right=$PEER2
+	ikelifetime=8h
+	lifetime=1h
+	esp=aes128-sha1-modp1024
+	ike=aes128-sha1-modp1024
+	keyingtries=%forever
+	leftsubnet=0.0.0.0/0
+	rightsubnet=0.0.0.0/0
+	dpddelay=10s
+	dpdtimeout=30s
+	dpdaction=restart
+	mark=100
+	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINK_LOCAL2} -lr ${LINK_REMOTE2} -m 100"
+EOT
+
+cat <<EOT >> /etc/cloudshroud${NAME}.vpn.secrets
+$PEER2 : PSK "${PSK2}"
+EOT
+}
+
+if [ "$VGWCONNECT" == "skip" ]
+then
+	custom_vpn
+else
+	vgw_vpn
+fi
+
 
 # Remove this script. It only neeeds to run once for initial setup
 rm -- "$0"
