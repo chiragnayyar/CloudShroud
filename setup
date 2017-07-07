@@ -322,7 +322,7 @@ $PEER2 : PSK "${PSK2}"
 EOT
 }
 
-if [ "$VGWCONNECT" == "skip" ]
+if [ "$VGWCONNECT" == "custom" ]
 then
 	custom_vpn
 else
