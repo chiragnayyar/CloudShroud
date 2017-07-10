@@ -273,7 +273,7 @@
 			"AllowedValues": ["True", "False"]
 		},
 		"VGWconnect": {
-			"Description": "Optional if you wish to create this as a site-to-site VPN connection with another VPC using the official AWS VPN service. Specify the remote VGW id (vgw-xxxxxxxx), and CloudShroud will automatically create a VPN with that VPC/VGW. Note that if you choose a VGW then ALL OTHER PARAMETERS in this deployment will be ignored except for Remote Networ' and Local NA' in the 'Advanced Settings' and all parameters under the 'General VPC Configuration' section.  If you choose 'Custom' then ALL parameters specified will take effect for your VPN",
+			"Description": "Optional if you wish to create this as a site-to-site VPN connection with another VPC using the official AWS VPN service. Specify the remote VGW id (vgw-xxxxxxxx), and CloudShroud will automatically create a VPN with that VPC/VGW. Note that if you choose a VGW then ALL OTHER PARAMETERS in this deployment will be ignored except for Remote Network and Local NAT in the 'Advanced Settings' and all parameters under the 'General VPC Configuration' section.  If you choose 'Custom' then ALL parameters specified will take effect for your VPN",
 			"Type": "String",
 			"Default": "Custom",
 			"AllowedPattern": "(( *)?vgw-[a-z0-9]+( *)?|[c,C][u,U][s,S][t,T][o,O][m,M])",
