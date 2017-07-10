@@ -223,7 +223,7 @@ conn $NAME
 EOF
 
 cat <<EOF > /etc/cloudshroud/${NAME}.vpn.secrets
-%any $PEER : PSK "${PSK}"
+$MY_EIP $PEER : PSK "${PSK}"
 EOF
 chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 			
@@ -267,7 +267,7 @@ vgw_vpn () {
   # Create the strongswan VPN to the VGW
   
 	cat <<EOF > $CONFIG
-  conn ${VPNID}-0
+conn ${VPNID}-0
 	keyexchange=ikev1
 	auto=start
 	type=tunnel
@@ -295,7 +295,7 @@ EOF
 chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 
   cat <<EOT >> $CONFIG
-  conn ${VPNID}-1
+conn ${VPNID}-1
 	keyexchange=ikev1
 	auto=start
 	type=tunnel
@@ -314,10 +314,10 @@ chmod 644 /etc/cloudshroud/${NAME}.vpn.secrets
 	dpdtimeout=30s
 	dpdaction=restart
 	mark=100
-	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINK_LOCAL2} -lr ${LINK_REMOTE2} -m 100"
+	leftupdown="/etc/cloudshroud/aws.updown -ln vti1 -ll ${LINK_LOCAL2} -lr ${LINK_REMOTE2} -m 100"
 EOT
 
-cat <<EOT >> /etc/cloudshroud${NAME}.vpn.secrets
+cat <<EOT >> /etc/cloudshroud/${NAME}.vpn.secrets
 $PEER2 : PSK "${PSK2}"
 EOT
 }
