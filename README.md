@@ -43,10 +43,10 @@ I'm currently looking at a better cleanup system.
 ## Input Parameters Explained
 Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced that deserve additional elaboration.
 
-#### **_VPC Auto Config_**
+#### **_VPC Auto Config_**:
 You can choose 'True' in the dropdown if you want CloudShroud to automatically update your local VPC route table(s) and Security Group(s) with the appropriate entries to allow full-open communication between your local VPC and the remote network. If you choose false then you will need to update the route table(s) and SG(s) manually.
 
-#### **_VPN to Remote VPC_**
+#### **_VPN to Remote VPC_**:
 This option can be used if you want to establish a VPN to an AWS Virtual Private Gateway (VGW) that is attached to another VPC. Simply specify the vgw ID (vgw-xxxxxxxx) that you want to connect to, and CloudShroud will create the tunnel and bring it up.
 
 If you specify 'Custom' in this field, ALL subsequent input parameters in the template will be evaluated and used to create your VPN. If you specify a vgw ID in this field instead, ALL other subsequent parameters will be IGNORED except for *_Remote Network_* and *_Local NAT_*
@@ -64,7 +64,7 @@ You CANNOT combine NAT networks *_ NAT_* individual hosts - it's one or the othe
 It's important to note that if you choose to NAT your VPC, you use a NAT CIDR that is the same network mask of your VPC or longer. Also, you should not choose a NAT CIDR or NAT IPs that are specified in the *LAN(s) behind remote VPN peer* parameter. If you do it can cause confusion in the VPN traffic selectors.
 
 #### **Local/Remote VTI IPs**:
-These IPs are only relevant to the remote peer if their firewall is using route-based VPN. You can leave these IP settings alone unless your peer partner specifically requests that they are changed to avoid conflict.
+These IPs are only relevant to the remote peer if their firewall is using route-based VPN, and you are NOT connecting to a VGW. You can leave these IP settings alone unless your peer partner specifically requests that they are changed to avoid conflict.
 
 ## Swan EC2 Access and Commands
 After launching the CloudShroud template, and it completes deployment you can SSH directly into the (Open|Strong)swan EC2 using the keypair that you specified during initial deployment. You can find the public IP of the EC2 under the *outputs* tab of the Cloudformation stack details
