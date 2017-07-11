@@ -5,19 +5,19 @@
 		"AWS::CloudFormation::Interface": {
 			"ParameterGroups": [{
 					"Label": {
-						"default": "General VPC Configuration"
+						"default": "General Configuration (required)"
 					},
-					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP", "UpdateAWS", "VGWconnect"]
+					"Parameters": ["InstanceType", "TerminatePro", "VPCID", "SwanSubnet", "KeyName", "SSHSourceIP", "UpdateAWS", "VGWconnect","RemoteNet","PSK", "RemotePeer"]
 				}, {
 					"Label": {
 						"default": "Phase 1 IKE Settings (optional)"
 					},
-					"Parameters": ["IKEversion", "IKEenc", "IKEint", "IKEDhGroup", "IKELifetime", "VPNName", "PSK", "RemotePeer"]
+					"Parameters": ["IKEversion", "IKEenc", "IKEint", "IKEDhGroup", "IKELifetime", "VPNName"]
 				}, {
 					"Label": {
 						"default": "Phase 2 IPSEC Settings (optional)"
 					},
-					"Parameters": ["Phase2Enc", "Phase2Int", "PFS", "Phase2Lifetime", "RemoteNet"]
+					"Parameters": ["Phase2Enc", "Phase2Int", "PFS", "Phase2Lifetime"]
 				}, {
 					"Label": {
 						"default": "Advanced Settings (optional)"
@@ -35,7 +35,7 @@
 					"default": "Deployment VPC"
 				},
 				"SwanSubnet": {
-					"default": "The public subnet to deploy *swan EC2"
+					"default": "*swan EC2 public subnet"
 				},
 				"KeyName": {
 					"default": "The SSH key pair"
@@ -146,7 +146,7 @@
 			"Type": "AWS::EC2::Subnet::Id"
 		},
 		"PSK": {
-			"Description": "The preshared key that you want to use for the VPN. You can use upper/lower letters, numbers, special characters (#!@&) and password length must be a min of 8 characters and max of 30. You can skip this field if you previously specified a vgw-xxxxxxx Id to autoconfigure this VPN for. The VGW will auto-generate the Preshared Key. ",
+			"Description": "The preshared key that you want to use for the VPN. Only required if you did NOT specify a vgw-xxxxxxxx ID in the 'VPN to Remote VPC' parameter. You can use upper/lower letters, numbers, special characters (#!@&) and key length must be a min of 8 characters and max of 30. You can skip this field if you previously specified a vgw-xxxxxxx Id to autoconfigure this VPN for. The VGW will auto-generate the Preshared Key. ",
 			"Type": "String",
 			"MinLength": "8",
 			"MaxLength": "30",
@@ -156,7 +156,7 @@
 			"ConstraintDescription": "Preshared Key can have upper and lower letters, numbers, special characters (#!@&), and password length must be a min of 8 characters and max of 30."
 		},
 		"RemotePeer": {
-			"Description": "The remote public peer IP you want to establish the VPN to",
+			"Description": "The remote public peer IP you want to establish the VPN to. Only required if you did NOT specify a vgw-xxxxxxxx ID in the 'VPN to Remote VPC' parameter.",
 			"Type": "String",
 			"MinLength": "7",
 			"MaxLength": "16",
@@ -165,7 +165,7 @@
 			"ConstraintDescription": "Peer IP must be a valid IP."
 		},
 		"RemoteNet": {
-			"Description": "The remote network(s) or host(s) that you want to connect to over a VPN. Multiple hosts or networks can be separated by commas, such as '10.0.0.0/16,172.16.0.0/16,1.2.3.1/32 ...etc'. Note: Individual host IPs must use /32, such as '1.1.1.1/32'",
+			"Description": "The remote network(s) or host(s) that you want to connect to over a VPN. Multiple hosts or networks can be separated by commas, such as '10.0.0.0/16,172.16.0.0/16,1.2.3.1/32 ...etc'. Note: Individual host IPs must use /32, such as '1.1.1.1/32'.",
 			"Type": "String",
 			"AllowedPattern": "(( *)?(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})( ,|,|, )?)+",
 			"ConstraintDescription": "Remote networks must be a valid IP CIDR range of the form x.x.x.x/x. (Example 10.0.0.0/16)."
@@ -284,59 +284,59 @@
 		"Mappings": {
 			"RegionMap": {
 				"us-east-1": {
-					"Strongswan": "ami-74cff562",
+					"Strongswan": "ami-e1787af7",
 					"Openswan": "ami-54d2e842"
 				},
 				"us-west-1": {
-					"Strongswan": "ami-8e1b34ee",
+					"Strongswan": "ami-ae7856ce",
 					"Openswan": "ami-49002f29"
 				},
 				"us-west-2": {
-					"Strongswan": "ami-7e776407",
+					"Strongswan": "ami-db667ba2",
 					"Openswan": "ami-6f736016"
 				},
 				"eu-west-1": {
-					"Strongswan": "ami-e594759c",
+					"Strongswan": "ami-f400e38d",
 					"Openswan": "ami-3d927344"
 				},
 				"eu-west-2": {
-					"Strongswan": "ami-97c1d7f3",
+					"Strongswan": "ami-09eff96d",
 					"Openswan": "ami-6ac2d40e"
 				},
 				"us-east-2": {
-					"Strongswan": "ami-7f18391a",
+					"Strongswan": "ami-dcc8e9b9",
 					"Openswan": "ami-f4183991"
 				},
 				"ap-southeast-1": {
-					"Strongswan": "ami-7be36918",
+					"Strongswan": "ami-a29b0fc1",
 					"Openswan": "ami-99ec66fa"
 				},
 				"ap-southeast-2": {
-					"Strongswan": "ami-75d5c716",
+					"Strongswan": "ami-c80d10ab",
 					"Openswan": "ami-0dd7c56e"
 				},
 				"ap-northeast-1": {
-					"Strongswan": "ami-f2adb195",
+					"Strongswan": "ami-be1d05d9",
 					"Openswan": "ami-5e819d39"
 				},
 				"ap-northeast-2": {
-					"Strongswan": "",
+					"Strongswan": "ami-12c11f7c",
 					"Openswan": "ami-5486583a"
 				},
 				"sa-east-1": {
-					"Strongswan": "ami-c00277ac",
+					"Strongswan": "ami-2cf68340",
 					"Openswan": "ami-14017478"
 				},
 				"eu-central-1": {
-					"Strongswan": "ami-cc8f2fa3",
+					"Strongswan": "ami-6c872403",
 					"Openswan": "ami-8e8f2fe1"
 				},
 				"ca-central-1": {
-					"Strongswan": "ami-d77fc0b3",
+					"Strongswan": "ami-c80d10ab",
 					"Openswan": "ami-c2803fa6"
 				},
 				"ap-south-1": {
-					"Strongswan": "ami-21d4aa4e",
+					"Strongswan": "ami-4561182a",
 					"Openswan": "ami-f8d2ac97"
 				}
 
