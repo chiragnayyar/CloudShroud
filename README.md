@@ -41,7 +41,8 @@ I'm currently looking at a better cleanup system.
 - Routing options over HA tunnels: Equal-cost multi-pathing, stateful session tracking, round-robin load balancing
 
 ## Input Parameters Explained
-Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced that deserve additional elaboration
+Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced that deserve additional elaboration.
+
 #### **_VPN Routing Type_**: 
 There are two very common VPN implementations, route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of firewall device they are using. You will notice that there are some firewall presets available (ie cisco-asa, cisco-ios).
 
