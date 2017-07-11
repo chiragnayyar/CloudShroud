@@ -64,7 +64,7 @@ You CANNOT combine NAT networks *_ NAT_* individual hosts - it's one or the othe
 It's important to note that if you choose to NAT your VPC, you use a NAT CIDR that is the same network mask of your VPC or longer. Also, you should not choose a NAT CIDR or NAT IPs that are specified in the *LAN(s) behind remote VPN peer* parameter. If you do it can cause confusion in the VPN traffic selectors.
 
 #### **Local/Remote VTI IPs**:
-These IPs are only relevant to the remote peer if their firewall is using route-based VPN, and you are NOT connecting to a VGW. You can leave these IP settings alone unless your peer partner specifically requests that they are changed to avoid conflict.
+These IPs are only relevant if the remote peer's firewall is using route-based VPN, and you are NOT connecting to a VGW. You can leave these IP settings alone unless your peer partner specifically requests that they are changed to avoid conflict.
 
 ## Swan EC2 Access and Commands
 After launching the CloudShroud template, and it completes deployment you can SSH directly into the (Open|Strong)swan EC2 using the keypair that you specified during initial deployment. You can find the public IP of the EC2 under the *outputs* tab of the Cloudformation stack details
