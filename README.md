@@ -5,7 +5,7 @@ The goal of this project is to simplify the process of setting up a custom VPN e
 features.
 
 ## Stack Launch Instructions
-1) Copy this full link path https://s3-us-west-2.amazonaws.com/cloudshroud/cloudshroud.json
+1) Click here <a href="https://console.aws.amazon.com/cloudformation/home?region=region#/stacks/new?stackName=CloudShroud&templateURL=https://s3-us-west-2.amazonaws.com/cloudshroud/cloudshroud.json"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/></a>
 2) Log into your AWS management console, and go to the **CloudFormation** service page
 3) Click *_Create New Stack_*, and select *_Specify an Amazon S3 Template URL_*
 4) Paste the URL that you copied in step 1, and click *_Next_*
