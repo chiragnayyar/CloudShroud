@@ -40,9 +40,9 @@ I'm currently looking at a better cleanup system.
 - High-availability (Open|Strong)swan clustering for active/active or active/pass tunnel failover
 - Routing options over HA tunnels: Equal-cost multi-pathing, stateful session tracking, round-robin load balancing
 
-## Advanced Settings and Caveats
-Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced settings that deserve additional elaboration
-#### **VPN Routing Type**: 
+## Input Parameters Explained
+Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced that deserve additional elaboration
+#### **_VPN Routing Type_**: 
 There are two very common VPN implementations, route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of firewall device they are using. You will notice that there are some firewall presets available (ie cisco-asa, cisco-ios).
 
 It's also important to note that if you choose a RouteType of 'policy-based' (or a firewall preset that uses policy-based, such as the cisco-asa) *AND* IKEversion 'ikev1', CloudShroud will launch an Openswan server rather than Strongswan. Strongswan is used for any other implementations including IKEv1/IKEv2 route-based or IKEv2 policy-based VPN. Openswan seems to handle multiple child SAs with IKEv1 better than Strongswan, hence the exception.
