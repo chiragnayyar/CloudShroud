@@ -1,5 +1,5 @@
 # CloudShroud
-CloudShroud is a helper template in Cloudformation which will launch a (Open|Strong)swan server in your VPC depending on your custom requirements, and automate many of the tasks for setting up a VPN. 
+CloudShroud is a helper template for Cloudformation which will launch a (Open|Strong)swan server in your VPC depending on your custom requirements, and automate many of the tasks for setting up a VPN. 
 
 The goal of this project is to simplify the process of setting up a custom VPN endpoint as much as possible while still affording great flexibility and
 features.
@@ -28,6 +28,7 @@ I'm currently looking at a better cleanup system.
 ## Current Limitations
 - Template can only be use to create a single tunnel to a single remote site
 - CloudShroud launches a single (Open|Strong)swan EC2 (no high-availability)
+- Does not support BGP
 
 ## Short-term feature additions
 - Tunnel monitoring through Cloudwatch
@@ -42,14 +43,14 @@ I'm currently looking at a better cleanup system.
 ## Advanced Settings and Caveats
 Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced settings that deserve additional elaboration
 #### **VPN Routing Type**: 
-There are two very common VPN implementations, route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of device they are using. You will notice that there are some presets available (ie CiscoASA, CiscoIOS), but these are still experimental for now.
+There are two very common VPN implementations, route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of firewall device they are using. You will notice that there are some firewall presets available (ie cisco-asa, cisco-ios).
 
 It's also important to note that if you choose a RouteType of 'policy-based' (or a firewall preset that uses policy-based, such as the cisco-asa) *AND* IKEversion 'ikev1', CloudShroud will launch an Openswan server rather than Strongswan. Strongswan is used for any other implementations including IKEv1/IKEv2 route-based or IKEv2 policy-based VPN. Openswan seems to handle multiple child SAs with IKEv1 better than Strongswan, hence the exception.
 
 #### **Local NAT Host(s) or Network**: 
 You can choose to NAT your entire VPC (ie. VPC actual 10.0.0.0/16 --> VPC nat 172.16.0.0/16, etc) OR you can do a 1:1 NAT of individual IPs in your VPC. If you choose to do the latter you will need to specify each 'real' host IP in your VPC followed by the corresponding IP that you want to NAT it to. You can do this for as many hosts as you want (ie. HOST, NATIP, HOST, NATIP, etc) .
 
-You CANNOT combine NAT'ing networks AND NAT'ing individual hosts - it's one or the other. Either specify a single NAT CIDR that you want your VPC translated to OR specify a comma delimited list of HOST, NATIPs.
+You CANNOT combine NAT networks *_ NAT_* individual hosts - it's one or the other. Either specify a single NAT CIDR that you want your VPC translated to OR specify a comma delimited list of HOST, NATIPs.
 
 It's important to note that if you choose to NAT your VPC, you use a NAT CIDR that is the same network mask of your VPC or longer. Also, you should not choose a NAT CIDR or NAT IPs that are specified in the *LAN(s) behind remote VPN peer* parameter. If you do it can cause confusion in the VPN traffic selectors.
 
