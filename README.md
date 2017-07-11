@@ -43,6 +43,14 @@ I'm currently looking at a better cleanup system.
 ## Input Parameters Explained
 Most of the parameters during initial stack deployment are self-explanatory, but there are a few advanced that deserve additional elaboration.
 
+#### **_VPC Auto Config_**
+You can choose 'True' in the dropdown if you want CloudShroud to automatically update your local VPC route table(s) and Security Group(s) with the appropriate entries to allow full-open communication between your local VPC and the remote network. If you choose false then you will need to update the route table(s) and SG(s) manually.
+
+#### **_VPN to Remote VPC_**
+This option can be used if you want to establish a VPN to an AWS Virtual Private Gateway (VGW) that is attached to another VPC. Simply specify the vgw ID (vgw-xxxxxxxx) that you want to connect to, and CloudShroud will create the tunnel and bring it up.
+
+If you specify 'Custom' in this field, ALL subsequent input parameters in the template will be evaluated and used to create your VPN. If you specify a vgw ID in this field instead, ALL other subsequent parameters will be IGNORED except for *_Remote Network_* and *_Local NAT_*
+
 #### **_VPN Routing Type_**: 
 There are two very common VPN implementations, route-based and policy-based. Firewalls that use route-based VPN rely on virtual tunnel interfaces and a local route table as its VPN traffic selectors, whereas a firewall that uses policy-based VPN does not require creating a virtual tunnel interface and uses policy definitions as its traffic selectors. Check with your remote peer to see which type of firewall device they are using. You will notice that there are some firewall presets available (ie cisco-asa, cisco-ios).
 
