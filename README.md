@@ -2,7 +2,7 @@
 CloudShroud is a helper template in Cloudformation which will launch a (Open|Strong)swan server in your VPC depending on your custom requirements, and automate many of the tasks for setting up a VPN. 
 
 The goal of this project is to simplify the process of setting up a custom VPN endpoint as much as possible while still affording great flexibility and
-features.
+features.<br />
 <a href="https://console.aws.amazon.com/cloudformation/home?region=region#/stacks/new?stackName=CloudShroud&templateURL=https://s3-us-west-2.amazonaws.com/cloudshroud/cloudshroud.json"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/></a>
 
 ## Stack Deletion Instructions
