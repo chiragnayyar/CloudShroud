@@ -329,6 +329,7 @@ else
 	vgw_vpn
 fi
 
+rm -f /etc/cloudshroud/output
 
 # Remove this script. It only neeeds to run once for initial setup
 rm -- "$0"
