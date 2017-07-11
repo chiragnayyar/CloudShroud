@@ -3,9 +3,10 @@ CloudShroud is a helper template in Cloudformation which will launch a (Open|Str
 
 The goal of this project is to simplify the process of setting up a custom VPN endpoint as much as possible while still affording great flexibility and
 features.<br />
+<br />
 <a href="https://console.aws.amazon.com/cloudformation/home?region=region#/stacks/new?stackName=CloudShroud&templateURL=https://s3-us-west-2.amazonaws.com/cloudshroud/cloudshroud.json"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/></a>
 
-## Stack Deletion Instructions
+## Stack Termination Instructions
 **_VERY IMPORTANT!!_**
 The (Open|Strong)swan EC2 runs cleanup scripts everytime that the server is stopped. BE SURE TO STOP the ec2 prior to deleting your Cloudformation stack. This will ensure that the EC2 has enough time to remove all created Security Group and VPC route table dependencies before the EC2 itself is terminated during stack deletion.
 
