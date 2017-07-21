@@ -151,6 +151,8 @@ conn $NAME
 	right=$PEER
 	ikelifetime=${P1LIFE}h
 	lifetime=${P2LIFE}h
+	margintime=1m
+	rekeyfuzz=0%
 	esp=${ESP}!
 	ike=${IKE}!
 	keyingtries=%forever
@@ -185,14 +187,16 @@ conn $NAME
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
 	ike=${IKE}!
+    margintime=1m
+    rekeyfuzz=0%
 	keyingtries=%forever
 	leftsubnet=$LEFTSUBNET
 	rightsubnet=$ONPREM
 	dpddelay=10s
 	dpdtimeout=30s
 	dpdaction=restart
-	mark=50
-	leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
+    mark=50
+    leftupdown="/etc/cloudshroud/aws.updown -ln vti0 -ll ${LINKLOCAL} -lr ${LINKREMOTE} -m 50"
 EOF
 chmod 644 $CONFIG
 
@@ -277,6 +281,8 @@ conn ${VPNID}-0
 	right=$PEER1
 	ikelifetime=8h
 	lifetime=1h
+	margintime=12m
+	rekeyfuzz=0%
 	esp=aes128-sha1-modp1024
 	ike=aes128-sha1-modp1024
 	keyingtries=%forever
