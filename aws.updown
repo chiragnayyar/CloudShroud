@@ -60,11 +60,22 @@ done
 	sudo iptables -t mangle -A INPUT -p esp -s ${TUNNEL_REMOTE_ENDPOINT} -d ${TUNNEL_LOCAL_ENDPOINT} -j MARK --set-xmark ${TUNNEL_MARK}
 	sudo ip route flush table 220
 }
+ping_up() {
+	nohup ping -i 5 -w 1 ${TUNNEL_REMOTE_ADDRESS} > /dev/null 2>&1 &
+	echo $! > /etc/cloudshroud/.PID'${TUNNEL_NAME}'
+}
+
+ping_down() {
+	kill -9 $(cat /etc/cloudshroud/.PID'${TUNNEL_NAME}')
+	rm -f /etc/cloudshroud/.PID'${TUNNEL_NAME}'
+}
+
 cleanup_settings() {
     iptables -t mangle -D FORWARD -o ${TUNNEL_NAME} -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 	iptables -t mangle -D INPUT -p esp -s ${TUNNEL_REMOTE_ENDPOINT} -d ${TUNNEL_LOCAL_ENDPOINT} -j MARK --set-xmark ${TUNNEL_MARK}
 	ip route flush cache
 }
+
 delete_interface() {
 	sudo ip link set ${TUNNEL_NAME} down mtu 1436
 	sudo ip link del ${TUNNEL_NAME}
@@ -78,6 +89,7 @@ case "${PLUTO_VERB}" in
         create_interface
         enable_kernel
         add_route
+		ping_up
         ;;
     down-client)
         cleanup_settings
