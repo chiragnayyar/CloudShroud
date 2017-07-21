@@ -189,8 +189,8 @@ conn $NAME
 	ike=${IKE}!
     margintime=1m
     rekeyfuzz=0%
-	keyingtries=%forever
-	leftsubnet=$LEFTSUBNET
+    keyingtries=%forever
+    leftsubnet=$LEFTSUBNET
 	rightsubnet=$ONPREM
 	dpddelay=10s
 	dpdtimeout=30s
