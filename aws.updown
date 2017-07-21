@@ -34,6 +34,7 @@ done
 #import any needed variables from user data
 source /etc/cloudshroud/variables
 ONPREM=$(echo ${ONPREM//[[:blank:]]/})
+TARGET_IP=$(echo "${TUNNEL_REMOTE_ADDRESS}" | grep -oP "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}")
 
 command_exists() {
     type "$1" >&2 2>&2
@@ -61,13 +62,16 @@ done
 	sudo ip route flush table 220
 }
 ping_up() {
-	nohup ping -i 5 -w 1 ${TUNNEL_REMOTE_ADDRESS} > /dev/null 2>&1 &
-	echo $! > /etc/cloudshroud/.PID'${TUNNEL_NAME}'
+	while /bin/true; do
+	   sleep 5
+	   ping -w 1 ${TARGET_IP} > /dev/null 2>&1
+	done &
+	echo $! > /etc/cloudshroud/.PID_test
 }
 
 ping_down() {
-	kill -9 $(cat /etc/cloudshroud/.PID'${TUNNEL_NAME}')
-	rm -f /etc/cloudshroud/.PID'${TUNNEL_NAME}'
+	kill -9 $(cat /etc/cloudshroud/.PID_${TUNNEL_NAME})
+	rm -f /etc/cloudshroud/.PID_${TUNNEL_NAME}
 }
 
 cleanup_settings() {
@@ -89,10 +93,11 @@ case "${PLUTO_VERB}" in
         create_interface
         enable_kernel
         add_route
-		ping_up
+        ping_up
         ;;
     down-client)
         cleanup_settings
         delete_interface
+		ping_down
         ;;
 esac
