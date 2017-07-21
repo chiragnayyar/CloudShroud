@@ -187,9 +187,9 @@ conn $NAME
 	lifetime=${P2LIFE}h
 	esp=${ESP}!
 	ike=${IKE}!
-    margintime=1m
-    rekeyfuzz=0%
-    keyingtries=%forever
+	margintime=1m
+	rekeyfuzz=0%
+	keyingtries=%forever
     leftsubnet=$LEFTSUBNET
 	rightsubnet=$ONPREM
 	dpddelay=10s
