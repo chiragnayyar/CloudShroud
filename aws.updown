@@ -66,7 +66,7 @@ ping_up() {
 	   sleep 5
 	   ping -w 1 ${TARGET_IP} > /dev/null 2>&1
 	done &
-	echo $! > /etc/cloudshroud/.PID_test
+	echo $! > /etc/cloudshroud/.PID_${TUNNEL_NAME}
 }
 
 ping_down() {
