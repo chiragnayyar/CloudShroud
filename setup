@@ -190,7 +190,7 @@ conn $NAME
 	margintime=1m
 	rekeyfuzz=0%
 	keyingtries=%forever
-    leftsubnet=$LEFTSUBNET
+	leftsubnet=$LEFTSUBNET
 	rightsubnet=$ONPREM
 	dpddelay=10s
 	dpdtimeout=30s
