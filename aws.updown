@@ -64,7 +64,7 @@ done
 ping_up() {
 	while /bin/true; do
 	   sleep 5
-	   ping -w 1 ${TARGET_IP} > /dev/null 2>&1
+	   ping -w 1 ${TARGET_IP} 
 	done &
 	echo $! > /etc/cloudshroud/.PID_${TUNNEL_NAME}
 }
