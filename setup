@@ -281,8 +281,6 @@ conn ${VPNID}-0
 	right=$PEER1
 	ikelifetime=8h
 	lifetime=1h
-	margintime=12m
-	rekeyfuzz=0%
 	esp=aes128-sha1-modp1024
 	ike=aes128-sha1-modp1024
 	keyingtries=%forever
