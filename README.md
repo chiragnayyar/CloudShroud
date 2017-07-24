@@ -1,4 +1,4 @@
-(https://youtu.be/syA0ElQFw9Q)
+[![CloudShroud Tutorial](https://s3-us-west-2.amazonaws.com/cloudshroud/Screen+Shot+2017-07-24+at+2.24.53+PM.png)] (https://youtu.be/syA0ElQFw9Q)
 
 # CloudShroud
 CloudShroud is a helper template for Cloudformation which will launch a (Open|Strong)swan server in your VPC depending on your custom requirements, and automate many of the tasks for setting up a VPN. 
