@@ -1,4 +1,4 @@
-[![CloudShroud Tutorial](https://s3-us-west-2.amazonaws.com/cloudshroud/Screen+Shot+2017-07-24+at+2.24.53+PM.png)]
+[![CloudShroud Tutorial]https://s3-us-west-2.amazonaws.com/cloudshroud/Screen+Shot+2017-07-24+at+2.24.53+PM.png]
 (https://youtu.be/syA0ElQFw9Q)
 
 # CloudShroud
