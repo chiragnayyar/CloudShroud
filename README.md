@@ -1,7 +1,6 @@
 [![CloudShroud Tutorial](https://s3-us-west-2.amazonaws.com/cloudshroud/Screen+Shot+2017-07-24+at+2.24.53+PM.png)](https://youtu.be/syA0ElQFw9Q)
 
 ### Video Quickview
-Time [00:00](https://youtu.be/syA0ElQFw9Q?t=0m0s) Intro to CloudShroud and Key Features<br />
 Time [04:20](https://youtu.be/syA0ElQFw9Q?t=4m20s) How to launch a CloudShroud stack<br />
 Time [05:00](https://youtu.be/syA0ElQFw9Q?t=5m) Discussion about available parameters and options<br />
 Time [15:36](https://youtu.be/syA0ElQFw9Q?t=15m36s) How to NAT your VPC over VPN<br />
