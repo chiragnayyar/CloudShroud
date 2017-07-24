@@ -116,7 +116,7 @@
 			"Description": "Pick the *swan instance type.",
 			"Type": "String",
 			"Default": "t2.small",
-			"AllowedValues": ["t2.micro", "t2.small", "t2.medium", "t2.large", "t2.xlarge", "t2.2xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge","m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge"],
+			"AllowedValues": ["t2.micro", "t2.small", "t2.medium", "t2.large", "t2.xlarge", "t2.2xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge"],
 			"ConstraintDescription": "must be a valid EC2 type."
 		},
 		"TerminatePro": {
@@ -769,11 +769,8 @@
 					"Ref": "swanSg"
 				},
 				"IpProtocol": "50",
-				"CidrIp": {
-					"Fn::Join": ["", [{
-								"Ref": "RemotePeer"
-							}, "/32"]]
-				}
+				"CidrIp": "0.0.0.0/0"
+
 			}
 		},
 		"ingress4": {
@@ -785,11 +782,7 @@
 				"IpProtocol": "udp",
 				"FromPort": "4500",
 				"ToPort": "4500",
-				"CidrIp": {
-					"Fn::Join": ["", [{
-								"Ref": "RemotePeer"
-							}, "/32"]]
-				}
+				"CidrIp": "0.0.0.0/0"
 			}
 		},
 		"ingress5": {
@@ -801,11 +794,7 @@
 				"IpProtocol": "udp",
 				"FromPort": "500",
 				"ToPort": "500",
-				"CidrIp": {
-					"Fn::Join": ["", [{
-								"Ref": "RemotePeer"
-							}, "/32"]]
-				}
+				"CidrIp": "0.0.0.0/0"
 			}
 		}
 	},
@@ -854,16 +843,14 @@
 						}
 					]
 				}, {
-					"Fn::Not": [{
-							"Fn::Equals": ["Custom", {
-									"Ref": "VGWconnect"
-								}
-							]
+					"Fn::Equals": ["Custom", {
+							"Ref": "VGWconnect"
 						}
 					]
 				}
 			]
 		}
+
 	},
 
 	"Outputs": {
